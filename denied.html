@@ -8,16 +8,35 @@
 :root{--primary:#e11d48;--primary-dark:#991b1b;--border:#fecaca;--shadow:0 6px 18px rgba(225,29,72,0.08);--danger:#dc2626;--overlay:rgba(255,255,255,0.68)}
 body{font-family:Inter,system-ui;margin:0;background:url('https://i.imgur.com/A6V1lhN.jpg') no-repeat center center fixed;background-size:cover;color:#1f1f1f;position:relative;min-height:100vh}
 body::before{content:"";position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(255,255,255,0.68);backdrop-filter:blur(4px);z-index:-1}
-header{background:linear-gradient(90deg,var(--primary),var(--primary-dark));color:white;padding:16px 24px;display:flex;align-items:center;gap:16px;position:relative}
+header{background:linear-gradient(90deg,var(--primary),var(--primary-dark));color:white;padding:16px 24px;display:flex;align-items:center;justify-content:space-between;position:relative;z-index:10}
 header img{height:58px;border-radius:14px;box-shadow:0 3px 10px rgba(0,0,0,0.2)}
 h1{margin:0;font-size:20px;font-weight:700}
-.back-btn{position:absolute;right:24px;color:white;text-decoration:none;font-size:14px}
+.back-btn{background:#dc2626;color:white;padding:8px 16px;border-radius:8px;font-size:14px;cursor:pointer;border:none;transition:0.2s}
+.back-btn:hover{background:#b91c1c}
 .container{max-width:1200px;margin:28px auto;padding:16px}
+.grid{display:grid;grid-template-columns:320px 1fr;gap:24px}
 .card{background:rgba(255,255,255,0.88);padding:20px;border-radius:14px;box-shadow:var(--shadow);border:1px solid var(--border);backdrop-filter:blur(10px)}
+.menu button{display:block;width:100%;text-align:left;padding:12px;border:0;background:none;border-radius:10px;margin-bottom:8px;cursor:pointer;transition:0.2s;font-weight:500}
+.menu button:hover{background:#fee2e2;color:var(--primary)}
+.menu button.active{background:var(--primary);color:white;font-weight:600}
+label{display:block;margin-top:12px;font-weight:600;font-size:14px;color:var(--primary-dark)}
+input,textarea{width:100%;padding:10px;margin-top:6px;border-radius:8px;border:1px solid var(--border);box-sizing:border-box;font-size:14px}
+input:focus,textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(225,29,72,0.15)}
+textarea{min-height:100px;resize:vertical}
+.row{display:flex;gap:12px;flex-wrap:wrap}
+.col{flex:1;min-width:200px}
+.actions{margin-top:16px;display:flex;gap:10px}
+button.primary{background:var(--primary);color:white;padding:12px 18px;border:0;border-radius:10px;cursor:pointer;font-weight:600;transition:0.2s}
+button.primary:hover{background:var(--primary-dark)}
+button.ghost{background:transparent;border:1.5px solid var(--border);padding:12px 18px;border-radius:10px;cursor:pointer;font-weight:500;transition:0.2s}
+button.ghost:hover{border-color:var(--primary);color:var(--primary);background:#fee2e2}
 .patient-item{padding:14px;border-radius:12px;border:1px solid var(--border);margin-bottom:10px;cursor:pointer;transition:0.2s}
 .patient-item:hover{background:#fee2e2;border-color:var(--primary)}
 .muted{color:#6b7280;font-size:13px}
 .report{white-space:pre-wrap;background:#fffafa;padding:18px;border-radius:12px;border:1px solid var(--border);font-family:monospace;font-size:14px;line-height:1.8}
+.search-bar{margin:12px 0;padding:10px 14px;border-radius:10px;border:1px solid var(--border);font-size:14px}
+.error{color:var(--danger);margin:10px 0;padding:12px;background:#fee;border:1px solid #fecaca;border-radius:10px;font-size:14px}
+.loading{text-align:center;color:#6b7280;padding:20px}
 </style>
 </head>
 <body>
@@ -27,9 +46,45 @@ h1{margin:0;font-size:20px;font-weight:700}
   <a href="index.html" class="back-btn">Retour</a>
 </header>
 <div class="container">
-  <div class="card">
-    <h2>Liste des refus</h2>
-    <div id="listContent"><div class="loading">Chargement...</div></div>
+  <div class="grid">
+    <aside class="card">
+      <div class="menu">
+        <button id="nav-list" class="active">Liste refus</button>
+        <button id="nav-new">Nouveau refus</button>
+      </div>
+      <input type="text" id="search" class="search-bar" placeholder="Rechercher un patient...">
+      <div id="list"></div>
+    </aside>
+    <main>
+      <section id="view-list" class="card">
+        <h2>Liste des refus</h2>
+        <div id="listContent"><div class="loading">Chargement...</div></div>
+      </section>
+      <section id="view-new" class="card" style="display:none;">
+        <h2>Nouveau refus</h2>
+        <form id="form">
+          <div class="row">
+            <div class="col"><label>Prénom Nom du SAMS</label><input type="text" id="samsName" required></div>
+            <div class="col"><label>Prénom Nom ID du patient</label><input type="text" id="patientID" required></div>
+          </div>
+          <label>Date et Heure de la prise en charge</label>
+          <input type="datetime-local" id="date" required>
+          <label>Récapitulatif des blessures</label>
+          <textarea id="recap" required></textarea>
+          <label>Raison du refus</label>
+          <textarea id="raison" required></textarea>
+          <div id="formError" class="error" style="display:none;"></div>
+          <div class="actions">
+            <button class="primary" type="submit">Enregistrer</button>
+            <button type="button" id="clear" class="ghost">Effacer</button>
+          </div>
+        </form>
+      </section>
+      <section id="view-dossier" class="card" style="display:none;">
+        <h2>Dossier refus</h2>
+        <div id="report" class="report"></div>
+      </section>
+    </main>
   </div>
 </div>
 
@@ -38,40 +93,78 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 
 const SUPABASE_URL = "https://sevrfgivcpefyykuffti.supabase.co"
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNldnJmZ2l2Y3BlZnl5a3VmZnRpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI5NDI1NTMsImV4cCI6MjA3ODUxODU1M30.YZnkSHsVWKQEhfU7xYfWyTFmtkM28Zuzdu7Y1sjBXQc"
-
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY)
 
-// === PROTECTION ===
-if (!localStorage.getItem('sams_user')) {
-  window.location.href = 'login.html'
+if (!localStorage.getItem('sams_user')) window.location.href = 'login.html'
+const user = JSON.parse(localStorage.getItem('sams_user'))
+
+async function log(action, details) {
+  await supabase.from('logs').insert({ user_id: user.id, username: user.user, action, target: 'refus', details })
 }
 
-async function loadDenied() {
+let items = [], current = null
+const views = { list: document.getElementById('view-list'), new: document.getElementById('view-new'), dossier: document.getElementById('view-dossier') }
+
+function show(v) {
+  Object.values(views).forEach(x => x.style.display = 'none')
+  views[v].style.display = 'block'
+  document.querySelectorAll('.menu button').forEach(b => b.classList.remove('active'))
+  document.getElementById(`nav-${v}`).classList.add('active')
+}
+
+async function load() {
   const { data, error } = await supabase.from('denied').select('*').order('id', { ascending: false })
   if (error) return document.getElementById('listContent').innerHTML = `<div class="error">${error.message}</div>`
-
-  const el = document.getElementById('listContent')
-  el.innerHTML = data.length ? data.map(d => `
-    <div class="patient-item" onclick="showReport(${d.id})">
-      <div><strong>${d.patientID}</strong><div class="muted">${new Date(d.date).toLocaleString('fr-FR')}</div></div>
-    </div>`).join('') : '<div class="muted">Aucun refus</div>'
+  items = data
+  render()
 }
 
-window.showReport = async (id) => {
-  const { data } = await supabase.from('denied').select('*').eq('id', id).single()
-  document.getElementById('listContent').innerHTML = `
-    <div class="report">
-Prénom Nom du SAMS : ${data.samsName}
-Prénom Nom ID du patient : ${data.patientID}
-Date et Heure de la prise en charge : ${new Date(data.date).toLocaleString('fr-FR')}
-Récapitulatif des blessures : ${data.recap}
-Raison du refus : ${data.raison}
-    </div>
-    <div style="margin-top:16px"><a href="denied.html" style="color:var(--primary);text-decoration:underline">← Retour à la liste</a></div>
-  `
+function render(filter = "") {
+  const f = items.filter(i => i.patientID.toLowerCase().includes(filter.toLowerCase()))
+  document.getElementById('list').innerHTML = f.map(i => `<div class="patient-item" onclick="open(${i.id})"><strong>${i.patientID}</strong><div class="muted">${new Date(i.date).toLocaleString('fr-FR')}</div></div>`).join('')
+  document.getElementById('listContent').innerHTML = f.length ? f.map(i => `<div class="patient-item" onclick="open(${i.id})"><strong>${i.patientID}</strong><div class="muted">${new Date(i.date).toLocaleString('fr-FR')} • ${i.raison.substring(0,30)}...</div></div>`).join('') : '<div class="muted">Aucun refus</div>'
 }
 
-loadDenied()
+window.open = (id) => {
+  current = items.find(x => x.id === id)
+  document.getElementById('report').textContent = `Prénom Nom du SAMS : ${current.samsName}\nPrénom Nom ID du patient : ${current.patientID}\nDate et Heure de la prise en charge : ${new Date(current.date).toLocaleString('fr-FR')}\nRécapitulatif des blessures : ${current.recap}\nRaison du refus : ${current.raison}`
+  show('dossier')
+}
+
+document.getElementById('form').onsubmit = async e => {
+  e.preventDefault()
+  const p = {
+    samsName: document.getElementById('samsName').value.trim(),
+    patientID: document.getElementById('patientID').value.trim(),
+    date: document.getElementById('date').value,
+    recap: document.getElementById('recap').value.trim(),
+    raison: document.getElementById('raison').value.trim()
+  }
+  try {
+    if (current) {
+      await supabase.from('denied').update(p).eq('id', current.id)
+      await log('update', `Refus ID: ${current.id}`)
+    } else {
+      const { data } = await supabase.from('denied').insert([p]).select()
+      await log('create', `Refus ID: ${data[0].id}`)
+    }
+    current = null
+    document.getElementById('form').reset()
+    await load()
+    show('list')
+    alert("Refus enregistré")
+  } catch (err) {
+    document.getElementById('formError').textContent = err.message
+    document.getElementById('formError').style.display = 'block'
+  }
+}
+
+document.getElementById('clear').onclick = () => { document.getElementById('form').reset(); current = null }
+document.getElementById('search').oninput = e => render(e.target.value)
+document.getElementById('nav-list').onclick = () => show('list')
+document.getElementById('nav-new').onclick = () => { current = null; document.getElementById('form').reset(); show('new') }
+
+load()
 </script>
 </body>
 </html>
