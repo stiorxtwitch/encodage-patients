@@ -23,7 +23,7 @@ button:hover{background:#991b1b}
 <div class="card">
   <img src="https://i.imgur.com/N1tQTgU.png" alt="SAMS" class="logo">
   <h1>SAMS - Connexion</h1>
-  <p>Accès réservé au personnel</p>
+  <p>Accès réservé au personnel médical</p>
   
   <input type="text" id="username" placeholder="Utilisateur" required>
   <input type="password" id="password" placeholder="Mot de passe" required>
@@ -60,10 +60,9 @@ document.getElementById('loginBtn').onclick = async () => {
       .single()
 
     if (error || !data) throw new Error("Utilisateur introuvable")
-
     if (data.password !== pass) throw new Error("Mot de passe incorrect")
 
-    // LOG : Connexion
+    // LOG
     await supabase.from('logs').insert({
       user_id: data.id,
       username: data.user,
@@ -72,6 +71,7 @@ document.getElementById('loginBtn').onclick = async () => {
       details: `Connexion réussie`
     })
 
+    // Session temporaire
     localStorage.setItem('sams_user', JSON.stringify({
       id: data.id,
       user: data.user,
