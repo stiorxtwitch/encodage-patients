@@ -112,12 +112,12 @@ button.danger:hover{background:rgba(220,38,38,0.05)}
 <script type="module">
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
 
-const SUPABASE_URL = "https://sevrfgivcpef  ykuffti.supabase.co"
+const SUPABASE_URL = "https://sevrfgivcpefyykuffti.supabase.co"
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNldnJmZ2l2Y3BlZnl5a3VmZnRpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI5NDI1NTMsImV4cCI6MjA3ODUxODU1M30.YZnkSHsVWKQEhfU7xYfWyTFmtkM28Zuzdu7Y1sjBXQc"
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY)
 
-// === PROTECTION + DÉCONNEXION ===
+// === PROTECTION ===
 const userData = localStorage.getItem('sams_user')
 if (!userData) {
   window.location.href = 'login.html'
@@ -141,7 +141,7 @@ if (user.permission === 'admin') {
   menu.insertBefore(adminBtn, menu.firstChild)
 }
 
-// === NAVIGATION VERS NOUVELLES PAGES ===
+// === NAVIGATION VERS PAGES ===
 document.getElementById('nav-denied').onclick = () => window.location.href = 'denied.html'
 document.getElementById('nav-dead').onclick = () => window.location.href = 'dead.html'
 document.getElementById('nav-unpaid').onclick = () => window.location.href = 'unpaid.html'
@@ -193,40 +193,14 @@ function renderDossier() {
 
 document.getElementById('patientForm').onsubmit = async e => {
   e.preventDefault()
-  const p = { 
-    samsName: document.getElementById('samsName').value.trim(), 
-    patientNameId: document.getElementById('patientNameId').value.trim(), 
-    dob: document.getElementById('dob').value, 
-    profession: document.getElementById('profession').value.trim(), 
-    antecedents: document.getElementById('antecedents').value.trim(), 
-    blessures: document.getElementById('blessures').value.trim(), 
-    raison: document.getElementById('raison').value.trim(), 
-    examens: document.getElementById('examens').value.trim(), 
-    totalCost: 0, invoiceRecap: '', 
-    createdAt: current ? current.createdAt : new Date().toISOString(), 
-    invoiceDate: current?.invoiceDate || null 
-  }
+  const p = { samsName: document.getElementById('samsName').value.trim(), patientNameId: document.getElementById('patientNameId').value.trim(), dob: document.getElementById('dob').value, profession: document.getElementById('profession').value.trim(), antecedents: document.getElementById('antecedents').value.trim(), blessures: document.getElementById('blessures').value.trim(), raison: document.getElementById('raison').value.trim(), examens: document.getElementById('examens').value.trim(), totalCost: 0, invoiceRecap: '', createdAt: current ? current.createdAt : new Date().toISOString(), invoiceDate: current?.invoiceDate || null }
   try {
-    if (current) { 
-      await supabase.from('patients').update(p).eq('id', current.id)
-      await logAction('update', 'patient', `ID: ${current.id} | ${p.patientNameId}`)
-    } else { 
-      const { data } = await supabase.from('patients').insert([p]).select()
-      await logAction('create', 'patient', `ID: ${data[0].id} | ${p.patientNameId}`)
-    }
+    if (current) { await supabase.from('patients').update(p).eq('id', current.id); await logAction('update', 'patient', `ID: ${current.id} | ${p.patientNameId}`) } else { const { data } = await supabase.from('patients').insert([p]).select(); await logAction('create', 'patient', `ID: ${data[0].id} | ${p.patientNameId}`) }
     await loadPatients(); alert("Patient enregistré"); clearForm(); show('list')
-  } catch (err) { 
-    document.getElementById('formError').textContent = err.message
-    document.getElementById('formError').style.display = 'block' 
-  }
+  } catch (err) { document.getElementById('formError').textContent = err.message; document.getElementById('formError').style.display = 'block' }
 }
 
-document.getElementById('deletePatient').onclick = async () => { 
-  if (!current || !confirm("Supprimer ce patient ?")) return
-  await logAction('delete', 'patient', `ID: ${current.id} | ${current.patientNameId}`)
-  await supabase.from('patients').delete().eq('id', current.id)
-  await loadPatients(); show('list') 
-}
+document.getElementById('deletePatient').onclick = async () => { if (!current || !confirm("Supprimer ce patient ?")) return; await logAction('delete', 'patient', `ID: ${current.id} | ${current.patientNameId}`); await supabase.from('patients').delete().eq('id', current.id); await loadPatients(); show('list') }
 
 document.getElementById('addInvoiceBtn').onclick = () => { invoiceItems = []; showInvoiceModal() }
 
@@ -270,21 +244,12 @@ window.saveInvoice = async () => {
   } catch (err) { alert("Erreur: " + err.message) }
 }
 
-function clearForm() { 
-  document.getElementById('patientForm').reset()
-  current = null
-  document.getElementById('formTitle').textContent = 'Nouveau patient' 
-}
+function clearForm() { document.getElementById('patientForm').reset(); current = null; document.getElementById('formTitle').textContent = 'Nouveau patient' }
 
-document.getElementById('editPatient').onclick = () => { 
-  if (!current) return
-  show('new')
-  document.getElementById('formTitle').textContent = 'Modifier patient'
-  ;['samsName','patientNameId','dob','profession','antecedents','blessures','raison','examens'].forEach(id => document.getElementById(id).value = current[id] || '')
-}
+document.getElementById('editPatient').onclick = () => { if (!current) return; show('new'); document.getElementById('formTitle').textContent = 'Modifier patient'; ['samsName','patientNameId','dob','profession','antecedents','blessures','raison','examens'].forEach(id => document.getElementById(id).value = current[id] || '') }
 
 document.getElementById('printReport').onclick = () => window.print()
-document.getElementById('searchPatient').oninput = e => renderLists(e.value)
+document.getElementById('searchPatient').oninput = e => renderLists(e.target.value)
 document.getElementById('nav-list').onclick = () => show('list')
 document.getElementById('nav-new').onclick = () => { clearForm(); show('new') }
 
