@@ -1,291 +1,240 @@
 <!doctype html>
 <html lang="fr">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Encodage patients — Rapport de soins</title>
-  <style>
-    :root{--accent:#0b76ef;--bg:#f6f8fb;--card:#ffffff;--muted:#6b7280}
-    *{box-sizing:border-box}
-    body{font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;margin:0;background:var(--bg);color:#111}
-    header{background:linear-gradient(90deg,var(--accent),#3aa0ff);color:white;padding:18px 24px;display:flex;align-items:center;justify-content:space-between}
-    header h1{margin:0;font-size:18px}
-    .container{max-width:1100px;margin:28px auto;padding:16px}
-    .grid{display:grid;grid-template-columns:320px 1fr;gap:18px}
-    .card{background:var(--card);padding:16px;border-radius:10px;box-shadow:0 6px 18px rgba(16,24,40,0.06)}
-    .menu button{display:block;width:100%;text-align:left;padding:10px;border:0;background:none;border-radius:8px;margin-bottom:6px;cursor:pointer}
-    .menu button.active{background:#eef6ff;color:var(--accent);font-weight:600}
-    label{display:block;margin-top:10px;font-weight:600}
-    input[type=text],input[type=date],select,textarea,input[type=number]{width:100%;padding:8px;margin-top:6px;border-radius:6px;border:1px solid #e6e9ef}
-    textarea{min-height:120px}
-    .row{display:flex;gap:10px}
-    .actions{margin-top:12px;display:flex;gap:8px}
-    button.primary{background:var(--accent);color:white;padding:10px 14px;border:0;border-radius:8px;cursor:pointer}
-    button.ghost{background:transparent;border:1px solid #e6e9ef;padding:10px 12px;border-radius:8px;cursor:pointer}
-    .list{max-height:380px;overflow:auto;margin-top:8px}
-    .patient-item{padding:8px;border-radius:6px;border:1px solid #f0f3f7;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
-    .muted{color:var(--muted);font-size:13px}
-    .report{white-space:pre-wrap;background:#fafcff;padding:12px;border-radius:8px;border:1px dashed #e6f0ff}
-    footer{margin-top:18px;color:var(--muted);font-size:13px;text-align:center}
-    @media(max-width:900px){.grid{grid-template-columns:1fr}}
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Encodage patients — Supabase</title>
+<style>
+:root{--accent:#0b76ef;--bg:#f6f8fb;--card:#fff;--muted:#6b7280}
+body{font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;margin:0;background:var(--bg);color:#111}
+header{background:linear-gradient(90deg,var(--accent),#3aa0ff);color:white;padding:18px 24px;display:flex;align-items:center;justify-content:space-between}
+header h1{margin:0;font-size:18px}
+.container{max-width:1100px;margin:28px auto;padding:16px}
+.grid{display:grid;grid-template-columns:320px 1fr;gap:18px}
+.card{background:var(--card);padding:16px;border-radius:10px;box-shadow:0 6px 18px rgba(16,24,40,0.06)}
+.menu button{display:block;width:100%;text-align:left;padding:10px;border:0;background:none;border-radius:8px;margin-bottom:6px;cursor:pointer}
+.menu button.active{background:#eef6ff;color:var(--accent);font-weight:600}
+label{display:block;margin-top:10px;font-weight:600}
+input[type=text],input[type=date],select,textarea,input[type=number]{width:100%;padding:8px;margin-top:6px;border-radius:6px;border:1px solid #e6e9ef}
+textarea{min-height:80px}
+.row{display:flex;gap:10px}
+.actions{margin-top:12px;display:flex;gap:8px}
+button.primary{background:var(--accent);color:white;padding:10px 14px;border:0;border-radius:8px;cursor:pointer}
+button.ghost{background:transparent;border:1px solid #e6e9ef;padding:10px 12px;border-radius:8px;cursor:pointer}
+.patient-item{padding:8px;border-radius:6px;border:1px solid #f0f3f7;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+.muted{color:var(--muted);font-size:13px}
+.report{white-space:pre-wrap;background:#fafcff;padding:12px;border-radius:8px;border:1px dashed #e6f0ff}
+.search-bar{margin-bottom:10px;padding:6px;width:100%;border-radius:6px;border:1px solid #e6e9ef}
+</style>
 </head>
 <body>
-  <header>
-    <h1>Encodage patients — Rapport de soins</h1>
-    <div class="muted">Version Supabase (en ligne)</div>
-  </header>
+<header>
+  <h1>Encodage patients — Supabase</h1>
+  <div class="muted">Version améliorée</div>
+</header>
 
-  <div class="container">
-    <div class="grid">
-      <aside class="card">
-        <div class="menu">
-          <button id="nav-list" class="active">Liste / sélectionner patient</button>
-          <button id="nav-new">Nouveau patient</button>
-          <button id="nav-rapport">Rapport de soins</button>
-          <button id="nav-facture">Facturation</button>
-        </div>
-        <div style="margin-top:14px">
-          <label for="patientSelect">Patients enregistrés</label>
-          <select id="patientSelect"></select>
-          <div class="list" id="patientList"></div>
-        </div>
-      </aside>
+<div class="container">
+  <div class="grid">
+    <aside class="card">
+      <div class="menu">
+        <button id="nav-list" class="active">Liste patients</button>
+        <button id="nav-new">Nouveau patient</button>
+      </div>
+      <input type="text" id="searchPatient" class="search-bar" placeholder="Rechercher un patient...">
+      <div id="patientList" class="list"></div>
+    </aside>
 
-      <main>
-        <section id="view-list" class="card">
-          <h2>Liste des patients</h2>
-          <div id="listContent"></div>
-        </section>
+    <main>
+      <!-- Liste -->
+      <section id="view-list" class="card">
+        <h2>Liste des patients</h2>
+        <div id="listContent"></div>
+      </section>
 
-        <section id="view-new" class="card" style="display:none;margin-top:18px">
-          <h2>Créer / Modifier un patient</h2>
-          <form id="patientForm">
-            <label>Prénom Nom du SAMS</label>
-            <input type="text" id="samsName" name="samsName" required>
-            <label>Prénom Nom ID du patient</label>
-            <input type="text" id="patientName" name="patientName" required>
-            <div class="row">
-              <div style="flex:1">
-                <label>Date de naissance</label>
-                <input type="date" id="dob" name="dob">
-              </div>
-              <div style="width:160px">
-                <label>Profession</label>
-                <input type="text" id="profession" name="profession">
-              </div>
-            </div>
-            <label>Antécédents médicaux</label>
-            <input type="text" id="ante1" name="ante1" placeholder="1)">
-            <input type="text" id="ante2" name="ante2" placeholder="2)">
-            <label>Récapitulatif des blessures</label>
-            <textarea id="blessures" name="blessures"></textarea>
-            <label>Raison de l’hospitalisation</label>
-            <textarea id="raison" name="raison"></textarea>
-            <label>Examens</label>
-            <textarea id="examens" name="examens" placeholder="IRM x2, Radio x1..."></textarea>
-            <div class="actions">
-              <button class="primary" type="submit">Enregistrer</button>
-              <button type="button" id="clearForm" class="ghost">Effacer</button>
-            </div>
-          </form>
-        </section>
-
-        <section id="view-rapport" class="card" style="display:none;margin-top:18px">
-          <h2>Rapport de soins</h2>
-          <div id="rapportContent" class="report">Aucun patient sélectionné.</div>
-          <div class="actions">
-            <button id="editPatient" class="ghost">Modifier</button>
-            <button id="printReport" class="primary">Imprimer</button>
-          </div>
-        </section>
-
-        <section id="view-facture" class="card" style="display:none;margin-top:18px">
-          <h2>Facturation</h2>
-          <ul class="muted">
-            <li>Blessure légère = 1000 $</li>
-            <li>Moyenne = 2 500 $</li>
-            <li>Grave = 3 000 $</li>
-            <li>IRM = 500 $ / unité</li>
-            <li>Radio / Échographie = 500 $ / unité</li>
-            <li>Accessoire = 2 000 $ / unité</li>
-            <li>Chambre privée = 10 000 $</li>
-          </ul>
-
-          <label>Niveau de blessure</label>
-          <select id="gravite">
-            <option value="0">Non spécifié</option>
-            <option value="1000">Légère</option>
-            <option value="2500">Moyenne</option>
-            <option value="3000">Grave</option>
-          </select>
-
+      <!-- Nouveau / Modifier patient -->
+      <section id="view-new" class="card" style="display:none;">
+        <h2>Créer / Modifier un patient</h2>
+        <form id="patientForm">
+          <label>Prénom Nom du SAMS</label>
+          <input type="text" id="samsName" name="samsName" required>
+          <label>Prénom Nom du patient</label>
+          <input type="text" id="patientName" name="patientName" required>
           <div class="row">
-            <div><label>IRM</label><input type="number" id="nbIrm" min="0" value="0"></div>
-            <div><label>Radio</label><input type="number" id="nbRadio" min="0" value="0"></div>
-            <div><label>Accessoires</label><input type="number" id="nbAcc" min="0" value="0"></div>
+            <div style="flex:1">
+              <label>Date de naissance</label>
+              <input type="date" id="dob" name="dob">
+            </div>
+            <div style="width:160px">
+              <label>Profession</label>
+              <input type="text" id="profession" name="profession">
+            </div>
           </div>
-          <label>Chambre privée ?</label>
-          <select id="chambre">
-            <option value="0">Non</option>
-            <option value="10000">Oui</option>
-          </select>
-
+          <label>Blessures (une par ligne)</label>
+          <textarea id="blessures" name="blessures" placeholder="Ex: Fracture tibia - Légère"></textarea>
+          <label>Raison de l’hospitalisation</label>
+          <textarea id="raison" name="raison"></textarea>
+          <label>Examens</label>
+          <textarea id="examens" name="examens" placeholder="Ex: IRM x1, Radio x2"></textarea>
           <div class="actions">
-            <button id="calcCost" class="primary">Calculer</button>
-            <button id="applyToPatient" class="ghost">Appliquer</button>
+            <button class="primary" type="submit">Enregistrer</button>
+            <button type="button" id="clearForm" class="ghost">Effacer</button>
           </div>
+        </form>
+      </section>
 
-          <p><strong>Coût total :</strong> <span id="totalCost">0 $</span></p>
-        </section>
+      <!-- Dossier patient -->
+      <section id="view-dossier" class="card" style="display:none;">
+        <h2>Dossier patient</h2>
+        <div id="rapportContent" class="report"></div>
+        <div class="actions">
+          <button id="editPatient" class="ghost">Modifier</button>
+          <button id="deletePatient" class="ghost" style="border-color:red;color:red">Supprimer</button>
+          <button id="addInvoice" class="primary">Ajouter facture</button>
+          <button id="printReport" class="primary">Imprimer</button>
+        </div>
+      </section>
 
-        <footer class="card">
-          <div class="muted">Les données sont sauvegardées dans Supabase en ligne.</div>
-        </footer>
-      </main>
-    </div>
+    </main>
   </div>
+</div>
 
-  <script type="module">
-    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
 
-    const SUPABASE_URL = "https://sevrfgivcpefyykuffti.supabase.co"
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNldnJmZ2l2Y3BlZnl5a3VmZnRpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI5NDI1NTMsImV4cCI6MjA3ODUxODU1M30.YZnkSHsVWKQEhfU7xYfWyTFmtkM28Zuzdu7Y1sjBXQc"
-    const supabase = createClient(SUPABASE_URL, SUPABASE_KEY)
+const SUPABASE_URL = "https://sevrfgivcpefyykuffti.supabase.co"
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNldnJmZ2l2Y3BlZnl5a3VmZnRpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI5NDI1NTMsImV4cCI6MjA3ODUxODU1M30.YZnkSHsVWKQEhfU7xYfWyTFmtkM28Zuzdu7Y1sjBXQc"
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY)
 
-    const views = {
-      list: document.getElementById('view-list'),
-      new: document.getElementById('view-new'),
-      rapport: document.getElementById('view-rapport'),
-      facture: document.getElementById('view-facture')
-    }
-    const navButtons = ['list','new','rapport','facture'].map(id => document.getElementById('nav-'+id))
-    function show(view){
-      Object.values(views).forEach(v=>v.style.display='none')
-      views[view].style.display='block'
-      navButtons.forEach(b=>b.classList.remove('active'))
-      document.getElementById('nav-'+view).classList.add('active')
-    }
+const views = {
+  list: document.getElementById('view-list'),
+  new: document.getElementById('view-new'),
+  dossier: document.getElementById('view-dossier')
+}
+const navButtons = ['list','new'].map(id => document.getElementById('nav-'+id))
+function show(view){
+  Object.values(views).forEach(v=>v.style.display='none')
+  views[view].style.display='block'
+  navButtons.forEach(b=>b.classList.remove('active'))
+  if(view!=='dossier') document.getElementById('nav-'+view).classList.add('active')
+}
 
-    let patients=[], current=null
+let patients=[], current=null
 
-    async function loadPatients(){
-      const { data, error } = await supabase.from('patients').select('*').order('id')
-      if(error) console.error(error)
-      patients = data||[]
-      renderAll()
-    }
+async function loadPatients(){
+  const { data, error } = await supabase.from('patients').select('*').order('id')
+  if(error) console.error(error)
+  patients = data||[]
+  renderList()
+}
 
-    async function savePatient(obj){
-      if(current){ await supabase.from('patients').update(obj).eq('id',current.id) }
-      else{ await supabase.from('patients').insert([obj]) }
-      await loadPatients()
-    }
+function renderList(filter=""){
+  const listDiv=document.getElementById('patientList')
+  listDiv.innerHTML=""
+  const filtered = patients.filter(p=>p.patientName.toLowerCase().includes(filter.toLowerCase()))
+  filtered.forEach(p=>{
+    const div=document.createElement('div')
+    div.className="patient-item"
+    div.innerHTML=`<div><strong>${p.patientName}</strong><div class="muted">${p.profession||''}</div></div><button data-id="${p.id}" class="ghost">Ouvrir</button>`
+    listDiv.appendChild(div)
+  })
+}
 
-    async function deletePatient(id){
-      await supabase.from('patients').delete().eq('id',id)
-      await loadPatients()
-    }
+document.getElementById('searchPatient').oninput = e=>{
+  renderList(e.target.value)
+}
 
-    const select=document.getElementById('patientSelect')
-    const list=document.getElementById('patientList')
-    const form=document.getElementById('patientForm')
-    const rapport=document.getElementById('rapportContent')
-    const totalCostSpan=document.getElementById('totalCost')
+document.addEventListener('click', async e=>{
+  const btn = e.target.closest('button')
+  if(!btn||!btn.dataset.id) return
+  current = patients.find(p=>p.id==btn.dataset.id)
+  show('dossier')
+  renderDossier()
+})
 
-    function renderAll(){
-      select.innerHTML='<option value="">-- Sélectionner --</option>'
-      patients.forEach(p=>{
-        const o=document.createElement('option')
-        o.value=p.id; o.textContent=p.patientName
-        select.appendChild(o)
-      })
-      list.innerHTML=patients.map(p=>`<div class="patient-item"><div><strong>${p.patientName}</strong><div class="muted">${p.profession||''}</div></div><button data-id="${p.id}" class="ghost">Ouvrir</button></div>`).join('')
-    }
-
-    document.addEventListener('click', async e=>{
-      const b=e.target.closest('button')
-      if(!b||!b.dataset.id)return
-      current=patients.find(p=>p.id==b.dataset.id)
-      show('rapport')
-      renderRapport()
-    })
-
-    select.onchange=e=>{
-      current=patients.find(p=>p.id==e.target.value)
-      renderRapport()
-      show('rapport')
-    }
-
-    form.onsubmit = async e => {
-      e.preventDefault()
-      const patient = {
-        samsName: form.samsName.value,
-        patientName: form.patientName.value,
-        dob: form.dob.value,
-        profession: form.profession.value,
-        ante1: form.ante1.value,
-        ante2: form.ante2.value,
-        blessures: form.blessures.value,
-        raison: form.raison.value,
-        examens: form.examens.value,
-        totalCost: Number(totalCostSpan.textContent.replace(' $','')) || 0
-      }
-      console.log(patient)
-      await savePatient(patient)
-      alert('Patient enregistré.')
-      form.reset()
-      show('list')
-    }
-
-    document.getElementById('clearForm').onclick=()=>form.reset()
-    document.getElementById('editPatient').onclick=()=>{
-      if(!current)return
-      show('new')
-      Object.keys(current).forEach(k=>{if(form[k])form[k].value=current[k]||''})
-    }
-    document.getElementById('printReport').onclick=()=>window.print()
-
-    function renderRapport(){
-      if(!current){rapport.textContent="Aucun patient sélectionné.";return}
-      const p=current
-      rapport.textContent=`Prénom Nom du SAMS: ${p.samsName||''}
-Prénom Nom ID du patient: ${p.patientName||''}
-Date de naissance: ${p.dob||''}
-Profession: ${p.profession||''}
-
-Antécédents médicaux:
-- ${p.ante1||''}
-- ${p.ante2||''}
+function renderDossier(){
+  if(!current) return
+  const r = document.getElementById('rapportContent')
+  const blessures = current.blessures ? current.blessures.split("\n").map(b=>"- "+b).join("\n") : ""
+  const invoices = current.invoices ? current.invoices.map(inv=>`- ${inv.item}: ${inv.qty} x ${inv.unitCost} $ = ${inv.total} $`).join("\n") : ""
+  r.textContent = `Prénom Nom du SAMS: ${current.samsName||''}
+Prénom Nom patient: ${current.patientName||''}
+Date de naissance: ${current.dob||''}
+Profession: ${current.profession||''}
 
 Blessures:
-${p.blessures||''}
+${blessures}
 
 Raison de l’hospitalisation:
-${p.raison||''}
+${current.raison||''}
 
 Examens:
-${p.examens||''}
+${current.examens||''}
 
-Coût total: ${p.totalCost||0} $`
-    }
+Factures:
+${invoices}
 
-    const g=document.getElementById('gravite'), irm=document.getElementById('nbIrm'), rad=document.getElementById('nbRadio'), acc=document.getElementById('nbAcc'), cham=document.getElementById('chambre')
-    document.getElementById('calcCost').onclick=()=>{const total=+g.value+irm.value*500+rad.value*500+acc.value*2000+ +cham.value;totalCostSpan.textContent=total+' $'}
-    document.getElementById('applyToPatient').onclick=async()=>{
-      if(!current)return alert("Sélectionnez un patient.")
-      const total=+g.value+irm.value*500+rad.value*500+acc.value*2000+ +cham.value
-      await savePatient({...current,totalCost:total})
-      alert("Coût appliqué.")
-      renderRapport()
-    }
+Coût total: ${current.totalCost||0} $`
+}
 
-    document.getElementById('nav-list').onclick=()=>show('list')
-    document.getElementById('nav-new').onclick=()=>show('new')
-    document.getElementById('nav-rapport').onclick=()=>show('rapport')
-    document.getElementById('nav-facture').onclick=()=>show('facture')
+document.getElementById('patientForm').onsubmit=async e=>{
+  e.preventDefault()
+  const patient={
+    samsName: form.samsName.value,
+    patientName: form.patientName.value,
+    dob: form.dob.value,
+    profession: form.profession.value,
+    blessures: form.blessures.value,
+    raison: form.raison.value,
+    examens: form.examens.value,
+    totalCost: current ? current.totalCost||0 : 0,
+    invoices: current ? current.invoices||[] : []
+  }
+  if(current){ await supabase.from('patients').update(patient).eq('id',current.id) }
+  else{ await supabase.from('patients').insert([patient]) }
+  await loadPatients()
+  alert('Patient enregistré.')
+  form.reset()
+  show('list')
+}
 
-    loadPatients()
-  </script>
+document.getElementById('clearForm').onclick=()=>form.reset()
+document.getElementById('editPatient').onclick=()=>{
+  if(!current) return
+  show('new')
+  Object.keys(current).forEach(k=>{if(form[k]) form[k].value=current[k]||''})
+}
+
+document.getElementById('deletePatient').onclick=async ()=>{
+  if(!current) return
+  if(confirm("Supprimer ce patient ?")){
+    await supabase.from('patients').delete().eq('id',current.id)
+    current=null
+    await loadPatients()
+    show('list')
+  }
+}
+
+document.getElementById('printReport').onclick=()=>window.print()
+
+document.getElementById('addInvoice').onclick=async ()=>{
+  if(!current) return
+  const item = prompt("Nom de l'article/service:")
+  const qty = parseInt(prompt("Quantité:"),10)
+  const unitCost = parseFloat(prompt("Prix unitaire:"))
+  if(!item || isNaN(qty) || isNaN(unitCost)) return alert("Valeurs invalides")
+  const total = qty*unitCost
+  const inv = { item, qty, unitCost, total }
+  current.invoices = current.invoices||[]
+  current.invoices.push(inv)
+  current.totalCost = (current.totalCost||0)+total
+  await supabase.from('patients').update(current).eq('id',current.id)
+  renderDossier()
+}
+
+document.getElementById('nav-list').onclick=()=>show('list')
+document.getElementById('nav-new').onclick=()=>show('new')
+
+loadPatients()
+</script>
 </body>
 </html>
