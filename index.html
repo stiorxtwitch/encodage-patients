@@ -6,7 +6,7 @@
 <title>SAMS - Gestion Patients</title>
 <style>
 :root{
-  --primary:#e11d48;     /* Rouge SAMS */
+  --primary:#e11d48;
   --primary-light:#fee2e2;
   --primary-dark:#991b1b;
   --bg:#fff5f5;
@@ -16,13 +16,29 @@
   --border:#fecaca;
   --shadow:0 6px 18px rgba(225,29,72,0.08);
   --danger:#dc2626;
+  --overlay:rgba(255,255,255,0.68); /* PLUS TRANSPARENT */
 }
+
 body{
   font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;
   margin:0;
-  background:var(--bg);
+  background: url('https://i.imgur.com/A6V1lhN.jpg') no-repeat center center fixed;
+  background-size: cover;
   color:var(--text);
+  position:relative;
+  min-height:100vh;
 }
+
+/* VOILE BLANC + FLOU POUR LAISSER VOIR L'IMAGE */
+body::before{
+  content:"";
+  position:fixed;
+  top:0; left:0; right:0; bottom:0;
+  background:rgba(255,255,255,0.68); /* Moins opaque */
+  backdrop-filter:blur(4px);
+  z-index:-1;
+}
+
 header{
   background:linear-gradient(90deg,var(--primary),var(--primary-dark));
   color:white;
@@ -31,180 +47,74 @@ header{
   align-items:center;
   justify-content:space-between;
   box-shadow:0 4px 12px rgba(225,29,72,0.15);
+  position:relative;
+  z-index:10;
 }
 header img{
-  height:40px;
-  filter:brightness(0) invert(1);
+  height:58px;
+  border-radius:14px;
+  box-shadow:0 3px 10px rgba(0,0,0,0.2);
 }
 header h1{
   margin:0;
   font-size:20px;
   font-weight:700;
 }
-.container{max-width:1200px;margin:28px auto;padding:16px}
+.container{
+  max-width:1200px;
+  margin:28px auto;
+  padding:16px;
+  position:relative;
+  z-index:5;
+}
 .grid{display:grid;grid-template-columns:320px 1fr;gap:24px}
 .card{
-  background:var(--card);
+  background:rgba(255,255,255,0.88); /* Cartes plus transparentes */
   padding:20px;
   border-radius:14px;
   box-shadow:var(--shadow);
   border:1px solid var(--border);
+  backdrop-filter:blur(10px);
 }
 .menu button{
-  display:block;
-  width:100%;
-  text-align:left;
-  padding:12px;
-  border:0;
-  background:none;
-  border-radius:10px;
-  margin-bottom:8px;
-  cursor:pointer;
-  transition:0.2s;
-  font-weight:500;
+  display:block;width:100%;text-align:left;padding:12px;border:0;background:none;border-radius:10px;margin-bottom:8px;cursor:pointer;transition:0.2s;font-weight:500;
 }
 .menu button:hover{background:var(--primary-light);color:var(--primary)}
-.menu button.active{
-  background:var(--primary);
-  color:white;
-  font-weight:600;
-}
-label{
-  display:block;
-  margin-top:12px;
-  font-weight:600;
-  font-size:14px;
-  color:var(--primary-dark);
-}
-input,select,textarea{
-  width:100%;
-  padding:10px;
-  margin-top:6px;
-  border-radius:8px;
-  border:1px solid var(--border);
-  box-sizing:border-box;
-  font-size:14px;
-}
-input:focus,select:focus,textarea:focus{
-  outline:none;
-  border-color:var(--primary);
-  box-shadow:0 0 0 3px rgba(225,29,72,0.15);
-}
+.menu button.active{background:var(--primary);color:white;font-weight:600}
+label{display:block;margin-top:12px;font-weight:600;font-size:14px;color:var(--primary-dark)}
+input,select,textarea{width:100%;padding:10px;margin-top:6px;border-radius:8px;border:1px solid var(--border);box-sizing:border-box;font-size:14px}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(225,29,72,0.15)}
 textarea{min-height:100px;resize:vertical}
 .row{display:flex;gap:12px;flex-wrap:wrap}
 .col{flex:1;min-width:200px}
 .actions{margin-top:16px;display:flex;gap:10px}
-button.primary{
-  background:var(--primary);
-  color:white;
-  padding:12px 18px;
-  border:0;
-  border-radius:10px;
-  cursor:pointer;
-  font-weight:600;
-  transition:0.2s;
-}
+button.primary{background:var(--primary);color:white;padding:12px 18px;border:0;border-radius:10px;cursor:pointer;font-weight:600;transition:0.2s}
 button.primary:hover{background:var(--primary-dark)}
-button.ghost{
-  background:transparent;
-  border:1.5px solid var(--border);
-  padding:12px 18px;
-  border-radius:10px;
-  cursor:pointer;
-  font-weight:500;
-  transition:0.2s;
-}
-button.ghost:hover{
-  border-color:var(--primary);
-  color:var(--primary);
-  background:var(--primary-light);
-}
-button.danger{
-  border-color:var(--danger);
-  color:var(--danger);
-}
-button.danger:hover{
-  background:rgba(220,38,38,0.05);
-  border-color:var(--danger);
-}
-.patient-item{
-  padding:14px;
-  border-radius:12px;
-  border:1px solid var(--border);
-  margin-bottom:10px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  cursor:pointer;
-  transition:0.2s;
-}
-.patient-item:hover{
-  background:var(--primary-light);
-  border-color:var(--primary);
-}
+button.ghost{background:transparent;border:1.5px solid var(--border);padding:12px 18px;border-radius:10px;cursor:pointer;font-weight:500;transition:0.2s}
+button.ghost:hover{border-color:var(--primary);color:var(--primary);background:var(--primary-light)}
+button.danger{border-color:var(--danger);color:var(--danger)}
+button.danger:hover{background:rgba(220,38,38,0.05)}
+.patient-item{padding:14px;border-radius:12px;border:1px solid var(--border);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;transition:0.2s}
+.patient-item:hover{background:var(--primary-light);border-color:var(--primary)}
 .muted{color:var(--muted);font-size:13px}
-.report{
-  white-space:pre-wrap;
-  background:#fffafa;
-  padding:18px;
-  border-radius:12px;
-  border:1px solid var(--border);
-  font-family:monospace;
-  font-size:14px;
-  line-height:1.8;
-  color:var(--text);
-}
-.search-bar{
-  margin:12px 0;
-  padding:10px 14px;
-  border-radius:10px;
-  border:1px solid var(--border);
-  font-size:14px;
-}
-.invoice-item{
-  display:flex;
-  gap:8px;
-  align-items:center;
-  margin:6px 0;
-  flex-wrap:wrap;
-}
-.invoice-item span{
-  flex:1;
-  min-width:100px;
-  padding:6px 10px;
-  background:var(--primary-light);
-  border-radius:6px;
-  font-size:13px;
-}
-.invoice-item button{
-  padding:4px 8px;
-  font-size:12px;
-  color:var(--danger);
-}
-.error{
-  color:var(--danger);
-  margin:10px 0;
-  padding:12px;
-  background:#fee;
-  border:1px solid #fecaca;
-  border-radius:10px;
-  font-size:14px;
-}
-.loading{
-  text-align:center;
-  color:var(--muted);
-  padding:20px;
-}
+.report{white-space:pre-wrap;background:#fffafa;padding:18px;border-radius:12px;border:1px solid var(--border);font-family:monospace;font-size:14px;line-height:1.8;color:var(--text)}
+.search-bar{margin:12px 0;padding:10px 14px;border-radius:10px;border:1px solid var(--border);font-size:14px}
+.invoice-item{display:flex;gap:8px;align-items:center;margin:6px 0;flex-wrap:wrap}
+.invoice-item span{flex:1;min-width:100px;padding:6px 10px;background:var(--primary-light);border-radius:6px;font-size:13px}
+.invoice-item button{padding:4px 8px;font-size:12px;color:var(--danger)}
+.error{color:var(--danger);margin:10px 0;padding:12px;background:#fee;border:1px solid #fecaca;border-radius:10px;font-size:14px}
+.loading{text-align:center;color:var(--muted);padding:20px}
 @media print{
+  body::before{background:rgba(255,255,255,1)!important}
   .grid{grid-template-columns:1fr}
-  .card{box-shadow:none;border:1px solid #ddd}
-  header{display:none}
+  .card{box-shadow:none;border:1px solid #ddd;backdrop-filter:none;background:white}
+  header, .menu, .actions button:not(#printReport){display:none}
 }
 </style>
 </head>
 <body>
 <header>
-  <img src="https://imgur.com/9B2ouHe" alt="SAMS Logo">
+  <img src="https://i.imgur.com/N1tQTgU.png" alt="SAMS Emergency Medical Services">
   <h1>SAMS - Gestion Patients</h1>
 </header>
 <div class="container">
@@ -218,13 +128,11 @@ button.danger:hover{
       <div id="patientList"></div>
     </aside>
     <main>
-      <!-- Liste -->
       <section id="view-list" class="card">
         <h2>Liste des patients</h2>
         <div id="listContent"><div class="loading">Connexion à Supabase...</div></div>
       </section>
 
-      <!-- Nouveau / Modifier -->
       <section id="view-new" class="card" style="display:none;">
         <h2 id="formTitle">Nouveau patient</h2>
         <form id="patientForm">
@@ -253,7 +161,6 @@ button.danger:hover{
         </form>
       </section>
 
-      <!-- Dossier patient -->
       <section id="view-dossier" class="card" style="display:none;">
         <h2>Dossier patient</h2>
         <div id="rapportContent" class="report"></div>
@@ -354,7 +261,6 @@ ${invoice}
 Coût total (en $) : ${c.totalCost || 0} $${recap}`.trim()
 }
 
-// === AJOUTER FACTURE ===
 document.getElementById('addInvoiceBtn').onclick = () => {
   invoiceItems = []
   showInvoiceModal()
@@ -437,7 +343,6 @@ window.saveInvoice = async () => {
   }
 }
 
-// === FORMULAIRE ===
 document.getElementById('patientForm').onsubmit = async e => {
   e.preventDefault()
   const now = new Date().toISOString()
@@ -502,7 +407,6 @@ document.getElementById('nav-list').onclick = () => show('list')
 document.getElementById('nav-new').onclick = () => { clearForm(); show('new') }
 
 loadPatients()
-</script>
+</script
 </body>
 </html>
-
