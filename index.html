@@ -62,28 +62,28 @@
           <h2>Créer / Modifier un patient</h2>
           <form id="patientForm">
             <label>Prénom Nom du SAMS</label>
-            <input type="text" id="samsName" required>
+            <input type="text" id="samsName" name="samsName" required>
             <label>Prénom Nom ID du patient</label>
-            <input type="text" id="patientName" required>
+            <input type="text" id="patientName" name="patientName" required>
             <div class="row">
               <div style="flex:1">
                 <label>Date de naissance</label>
-                <input type="date" id="dob">
+                <input type="date" id="dob" name="dob">
               </div>
               <div style="width:160px">
                 <label>Profession</label>
-                <input type="text" id="profession">
+                <input type="text" id="profession" name="profession">
               </div>
             </div>
             <label>Antécédents médicaux</label>
-            <input type="text" id="ante1" placeholder="1)">
-            <input type="text" id="ante2" placeholder="2)">
+            <input type="text" id="ante1" name="ante1" placeholder="1)">
+            <input type="text" id="ante2" name="ante2" placeholder="2)">
             <label>Récapitulatif des blessures</label>
-            <textarea id="blessures"></textarea>
+            <textarea id="blessures" name="blessures"></textarea>
             <label>Raison de l’hospitalisation</label>
-            <textarea id="raison"></textarea>
+            <textarea id="raison" name="raison"></textarea>
             <label>Examens</label>
-            <textarea id="examens" placeholder="IRM x2, Radio x1..."></textarea>
+            <textarea id="examens" name="examens" placeholder="IRM x2, Radio x1..."></textarea>
             <div class="actions">
               <button class="primary" type="submit">Enregistrer</button>
               <button type="button" id="clearForm" class="ghost">Effacer</button>
@@ -146,11 +146,9 @@
     </div>
   </div>
 
-  <!-- === Script principal === -->
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
 
-    // ⚠️ REMPLIS ICI TES INFOS SUPABASE :
     const SUPABASE_URL = "https://sevrfgivcpefyykuffti.supabase.co"
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNldnJmZ2l2Y3BlZnl5a3VmZnRpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI5NDI1NTMsImV4cCI6MjA3ODUxODU1M30.YZnkSHsVWKQEhfU7xYfWyTFmtkM28Zuzdu7Y1sjBXQc"
     const supabase = createClient(SUPABASE_URL, SUPABASE_KEY)
@@ -162,9 +160,13 @@
       facture: document.getElementById('view-facture')
     }
     const navButtons = ['list','new','rapport','facture'].map(id => document.getElementById('nav-'+id))
-    function show(view){ Object.values(views).forEach(v=>v.style.display='none'); views[view].style.display='block'; navButtons.forEach(b=>b.classList.remove('active')); document.getElementById('nav-'+view).classList.add('active'); }
+    function show(view){
+      Object.values(views).forEach(v=>v.style.display='none')
+      views[view].style.display='block'
+      navButtons.forEach(b=>b.classList.remove('active'))
+      document.getElementById('nav-'+view).classList.add('active')
+    }
 
-    // --- Données Supabase ---
     let patients=[], current=null
 
     async function loadPatients(){
@@ -185,7 +187,6 @@
       await loadPatients()
     }
 
-    // --- Interface ---
     const select=document.getElementById('patientSelect')
     const list=document.getElementById('patientList')
     const form=document.getElementById('patientForm')
@@ -216,17 +217,33 @@
       show('rapport')
     }
 
-    form.onsubmit=async e=>{
+    form.onsubmit = async e => {
       e.preventDefault()
-      const data=Object.fromEntries(new FormData(form))
-      await savePatient(data)
+      const patient = {
+        samsName: form.samsName.value,
+        patientName: form.patientName.value,
+        dob: form.dob.value,
+        profession: form.profession.value,
+        ante1: form.ante1.value,
+        ante2: form.ante2.value,
+        blessures: form.blessures.value,
+        raison: form.raison.value,
+        examens: form.examens.value,
+        totalCost: Number(totalCostSpan.textContent.replace(' $','')) || 0
+      }
+      console.log(patient)
+      await savePatient(patient)
       alert('Patient enregistré.')
       form.reset()
       show('list')
     }
 
     document.getElementById('clearForm').onclick=()=>form.reset()
-    document.getElementById('editPatient').onclick=()=>{if(!current)return;show('new');Object.keys(current).forEach(k=>{if(form[k])form[k].value=current[k]||''})}
+    document.getElementById('editPatient').onclick=()=>{
+      if(!current)return
+      show('new')
+      Object.keys(current).forEach(k=>{if(form[k])form[k].value=current[k]||''})
+    }
     document.getElementById('printReport').onclick=()=>window.print()
 
     function renderRapport(){
@@ -253,12 +270,16 @@ ${p.examens||''}
 Coût total: ${p.totalCost||0} $`
     }
 
-    // --- Facturation ---
     const g=document.getElementById('gravite'), irm=document.getElementById('nbIrm'), rad=document.getElementById('nbRadio'), acc=document.getElementById('nbAcc'), cham=document.getElementById('chambre')
     document.getElementById('calcCost').onclick=()=>{const total=+g.value+irm.value*500+rad.value*500+acc.value*2000+ +cham.value;totalCostSpan.textContent=total+' $'}
-    document.getElementById('applyToPatient').onclick=async()=>{if(!current)return alert("Sélectionnez un patient.");const total=+g.value+irm.value*500+rad.value*500+acc.value*2000+ +cham.value;await savePatient({...current,totalCost:total});alert("Coût appliqué.");renderRapport()}
+    document.getElementById('applyToPatient').onclick=async()=>{
+      if(!current)return alert("Sélectionnez un patient.")
+      const total=+g.value+irm.value*500+rad.value*500+acc.value*2000+ +cham.value
+      await savePatient({...current,totalCost:total})
+      alert("Coût appliqué.")
+      renderRapport()
+    }
 
-    // --- Navigation ---
     document.getElementById('nav-list').onclick=()=>show('list')
     document.getElementById('nav-new').onclick=()=>show('new')
     document.getElementById('nav-rapport').onclick=()=>show('rapport')
