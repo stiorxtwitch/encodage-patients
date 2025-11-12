@@ -115,6 +115,14 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY)
 
 const views = { list: document.getElementById('view-list'), new: document.getElementById('view-new'), dossier: document.getElementById('view-dossier') }
 let patients = [], current = null
+let invoiceItems = []
+
+function formatDateTime(date) {
+  return date.toLocaleString('fr-FR', {
+    day: '2-digit', month: '2-digit', year: 'numeric',
+    hour: '2-digit', minute: '2-digit', second: '2-digit'
+  })
+}
 
 function show(view) {
   Object.values(views).forEach(v => v.style.display = 'none')
@@ -166,6 +174,8 @@ window.openDossier = (id) => {
 
 function renderDossier() {
   const c = current
+  const created = c.createdAt ? `Créé le : ${formatDateTime(new Date(c.createdAt))}` : ''
+  const invoice = c.invoiceDate ? `Facture ajoutée le : ${formatDateTime(new Date(c.invoiceDate))}` : ''
   const recap = c.invoiceRecap ? ` (${c.invoiceRecap})` : ''
   document.getElementById('rapportContent').textContent = `
 Prénom Nom du SAMS : ${c.samsName || ''}
@@ -176,13 +186,16 @@ Antécédents médicaux (les 2 derniers) : ${c.antecedents || ''}
 Récapitulatif des blessures : ${c.blessures || ''}
 Récapitulatif de la raison de l’hospitalisation : ${c.raison || ''}
 Examens (DÉTAILLER LES OP) : ${c.examens || ''}
+${created}
+${invoice}
 Coût total (en $) : ${c.totalCost || 0} $${recap}`.trim()
 }
 
 // === BOUTON AJOUTER FACTURE ===
-document.getElementById('addInvoiceBtn').onclick = showInvoiceModal
-
-let invoiceItems = []
+document.getElementById('addInvoiceBtn').onclick = () => {
+  invoiceItems = []
+  showInvoiceModal()
+}
 
 function showInvoiceModal() {
   const modal = document.createElement('div')
@@ -190,7 +203,7 @@ function showInvoiceModal() {
   modal.innerHTML = `
     <div class="card" style="width:500px;max-height:80vh;overflow:auto">
       <h3>Ajouter une facture</h3>
-      <div id="invoiceList"></div>
+      <div id="invoiceList"><div class="muted">Aucun élément</div></div>
       <div class="row" style="margin-top:10px">
         <select id="itemType">
           <option value="blessure_légère">Blessure légère (1000$)</option>
@@ -211,7 +224,6 @@ function showInvoiceModal() {
       </div>
     </div>`
   document.body.appendChild(modal)
-  updateInvoiceList()
 }
 
 window.addInvoiceItem = () => {
@@ -233,7 +245,7 @@ function updateInvoiceList() {
     <div class="invoice-item">
       <span>${item.label} x${item.qty}</span>
       <span>${item.cost}$</span>
-      <button class="ghost" style="color:red" onclick="invoiceItems.splice(${i},1); updateInvoiceList()">Suppr</button>
+      <button class="ghost" style="color:red;font-size:12px" onclick="invoiceItems.splice(${i},1); updateInvoiceList()">Suppr</button>
     </div>`).join('') || '<div class="muted">Aucun élément</div>'
 }
 
@@ -241,17 +253,22 @@ window.saveInvoice = async () => {
   if (invoiceItems.length === 0) return alert("Ajoutez au moins un élément")
   const total = invoiceItems.reduce((s, i) => s + i.cost, 0)
   const recap = invoiceItems.map(i => `${i.qty}x ${i.label}`).join(', ')
+  const now = new Date().toISOString()
+
   current.totalCost = (current.totalCost || 0) + total
   current.invoiceRecap = recap
+  current.invoiceDate = now
 
   try {
     await supabase.from('patients').update({
       totalCost: current.totalCost,
-      invoiceRecap: current.invoiceRecap
+      invoiceRecap: current.invoiceRecap,
+      invoiceDate: current.invoiceDate
     }).eq('id', current.id)
     await loadPatients()
     renderDossier()
     document.querySelector('[style*=fixed]')?.remove()
+    invoiceItems = []
   } catch (err) {
     alert("Erreur: " + err.message)
   }
@@ -260,6 +277,7 @@ window.saveInvoice = async () => {
 // === FORMULAIRE ===
 document.getElementById('patientForm').onsubmit = async e => {
   e.preventDefault()
+  const now = new Date().toISOString()
   const p = {
     samsName: document.getElementById('samsName').value.trim(),
     patientNameId: document.getElementById('patientNameId').value.trim(),
@@ -270,7 +288,9 @@ document.getElementById('patientForm').onsubmit = async e => {
     raison: document.getElementById('raison').value.trim(),
     examens: document.getElementById('examens').value.trim(),
     totalCost: 0,
-    invoiceRecap: ''
+    invoiceRecap: '',
+    createdAt: current ? current.createdAt : now,
+    invoiceDate: current?.invoiceDate || null
   }
   try {
     current
