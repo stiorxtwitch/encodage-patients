@@ -81,6 +81,9 @@ button.ghost:hover{border-color:var(--primary);color:var(--primary);background:#
       <section id="view-dossier" class="card" style="display:none;">
         <h2>Dossier décès</h2>
         <div id="report" class="report"></div>
+        <div class="actions">
+          <button class="ghost" onclick="show('list')">Retour à la liste</button>
+        </div>
       </section>
     </main>
   </div>
@@ -119,11 +122,11 @@ async function load() {
 
 function render(filter = "") {
   const f = items.filter(i => i.patientID.toLowerCase().includes(filter.toLowerCase()))
-  document.getElementById('list').innerHTML = f.map(i => `<div class="patient-item" onclick="open(${i.id})"><strong>${i.patientID}</strong><div class="muted">${new Date(i.date).toLocaleString('fr-FR')}</div></div>`).join('')
-  document.getElementById('listContent').innerHTML = f.length ? f.map(i => `<div class="patient-item" onclick="open(${i.id})"><strong>${i.patientID}</strong><div class="muted">${new Date(i.date).toLocaleString('fr-FR')} • ${i.raison.substring(0,30)}...</div></div>`).join('') : '<div class="muted">Aucun décès</div>'
+  document.getElementById('list').innerHTML = f.map(i => `<div class="patient-item" onclick="openDossier(${i.id})"><div><strong>${i.patientID}</strong><div class="muted">${new Date(i.date).toLocaleString('fr-FR')}</div></div></div>`).join('')
+  document.getElementById('listContent').innerHTML = f.length ? f.map(i => `<div class="patient-item" onclick="openDossier(${i.id})"><div><strong>${i.patientID}</strong><div class="muted">${new Date(i.date).toLocaleString('fr-FR')} • ${i.raison.substring(0,30)}...</div></div></div>`).join('') : '<div class="muted">Aucun décès</div>'
 }
 
-window.open = (id) => {
+function openDossier(id) {
   current = items.find(x => x.id === id)
   document.getElementById('report').textContent = `Prénom Nom du SAMS : ${current.samsName}\nPrénom Nom ID du patient : ${current.patientID}\nDate et heure de la prise en charge : ${new Date(current.date).toLocaleString('fr-FR')}\nRaison du coma : ${current.raison}`
   show('dossier')
