@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SAMS - Refus de paiement</title>
+<style>
+:root{--primary:#e11d48;--primary-dark:#991b1b;--border:#fecaca;--shadow:0 6px 18px rgba(225,29,72,0.08);--danger:#dc2626;--overlay:rgba(255,255,255,0.68)}
+body{font-family:Inter,system-ui;margin:0;background:url('https://i.imgur.com/A6V1lhN.jpg') no-repeat center center fixed;background-size:cover;color:#1f1f1f;position:relative;min-height:100vh}
+body::before{content:"";position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(255,255,255,0.68);backdrop-filter:blur(4px);z-index:-1}
+header{background:linear-gradient(90deg,var(--primary),var(--primary-dark));color:white;padding:16px 24px;display:flex;align-items:center;gap:16px;position:relative}
+header img{height:58px;border-radius:14px;box-shadow:0 3px 10px rgba(0,0,0,0.2)}
+h1{margin:0;font-size:20px;font-weight:700}
+.back-btn{position:absolute;right:24px;color:white;text-decoration:none;font-size:14px}
+.container{max-width:1200px;margin:28px auto;padding:16px}
+.card{background:rgba(255,255,255,0.88);padding:20px;border-radius:14px;box-shadow:var(--shadow);border:1px solid var(--border);backdrop-filter:blur(10px)}
+.patient-item{padding:14px;border-radius:12px;border:1px solid var(--border);margin-bottom:10px;cursor:pointer;transition:0.2s}
+.patient-item:hover{background:#fee2e2;border-color:var(--primary)}
+.muted{color:#6b7280;font-size:13px}
+.report{white-space:pre-wrap;background:#fffafa;padding:18px;border-radius:12px;border:1px solid var(--border);font-family:monospace;font-size:14px;line-height:1.8}
+</style>
+</head>
+<body>
+<header>
+  <img src="https://i.imgur.com/N1tQTgU.png" alt="SAMS">
+  <h1>Refus de paiement</h1>
+  <a href="index.html" class="back-btn">Retour</a>
+</header>
+<div class="container">
+  <div class="card">
+    <h2>Liste des refus</h2>
+    <div id="listContent"><div class="loading">Chargement...</div></div>
+  </div>
+</div>
+
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+
+const SUPABASE_URL = "https://sevrfgivcpefyykuffti.supabase.co"
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNldnJmZ2l2Y3BlZnl5a3VmZnRpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI5NDI1NTMsImV4cCI6MjA3ODUxODU1M30.YZnkSHsVWKQEhfU7xYfWyTFmtkM28Zuzdu7Y1sjBXQc"
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY)
+
+// === PROTECTION ===
+if (!localStorage.getItem('sams_user')) {
+  window.location.href = 'login.html'
+}
+
+async function loadDenied() {
+  const { data, error } = await supabase.from('denied').select('*').order('id', { ascending: false })
+  if (error) return document.getElementById('listContent').innerHTML = `<div class="error">${error.message}</div>`
+
+  const el = document.getElementById('listContent')
+  el.innerHTML = data.length ? data.map(d => `
+    <div class="patient-item" onclick="showReport(${d.id})">
+      <div><strong>${d.patientID}</strong><div class="muted">${new Date(d.date).toLocaleString('fr-FR')}</div></div>
+    </div>`).join('') : '<div class="muted">Aucun refus</div>'
+}
+
+window.showReport = async (id) => {
+  const { data } = await supabase.from('denied').select('*').eq('id', id).single()
+  document.getElementById('listContent').innerHTML = `
+    <div class="report">
+Prénom Nom du SAMS : ${data.samsName}
+Prénom Nom ID du patient : ${data.patientID}
+Date et Heure de la prise en charge : ${new Date(data.date).toLocaleString('fr-FR')}
+Récapitulatif des blessures : ${data.recap}
+Raison du refus : ${data.raison}
+    </div>
+    <div style="margin-top:16px"><a href="denied.html" style="color:var(--primary);text-decoration:underline">← Retour à la liste</a></div>
+  `
+}
+
+loadDenied()
+</script>
+</body>
+</html>
