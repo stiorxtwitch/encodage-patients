@@ -21,6 +21,7 @@ input[type=text],input[type=date],input[type=number],select,textarea{width:100%;
 input:focus,textarea:focus,select:focus{outline:none;border-color:var(--accent)}
 textarea{min-height:100px;resize:vertical}
 .row{display:flex;gap:12px;flex-wrap:wrap}
+.col{display:flex;flex-direction:column;flex:1;min-width:200px}
 .actions{margin-top:16px;display:flex;gap:10px}
 button.primary{background:var(--accent);color:white;padding:12px 16px;border:0;border-radius:8px;cursor:pointer;transition:background 0.2s}
 button.primary:hover{background:#0964d0}
@@ -36,10 +37,13 @@ button.danger:hover{background:rgba(255,0,0,0.05)}
 .search-bar{margin-bottom:12px;padding:10px;border-radius:6px;border:1px solid var(--border);font-size:14px}
 .list-content .patient-item{margin-bottom:8px}
 .invoice-section{margin-top:20px}
-.invoice-item{display:flex;gap:10px;align-items:center;margin-bottom:8px}
-.invoice-item input{flex:1}
+.invoice-item{display:flex;gap:10px;align-items:center;margin-bottom:8px;flex-wrap:wrap}
+.invoice-item input{flex:1;min-width:150px}
+.invoice-item select{flex:1;min-width:150px}
 .add-invoice{margin-top:10px}
 h2{margin:0 0 16px;font-size:20px}
+.error{color:red;margin-top:10px}
+.loading{text-align:center;padding:20px;color:var(--muted)}
 @media print{.grid{grid-template-columns:1fr}.card{box-shadow:none;border:none;padding:0}}
 </style>
 </head>
@@ -62,28 +66,38 @@ h2{margin:0 0 16px;font-size:20px}
       <!-- Liste -->
       <section id="view-list" class="card">
         <h2>Liste des patients</h2>
-        <div id="listContent" class="list-content"></div>
+        <div id="listContent" class="list-content">
+          <div class="loading">Chargement...</div>
+        </div>
       </section>
       <!-- Nouveau / Modifier patient -->
       <section id="view-new" class="card" style="display:none;">
         <h2>Créer / Modifier un patient</h2>
         <form id="patientForm">
-          <label>Prénom Nom du SAMS</label>
-          <input type="text" id="samsName" name="samsName" required>
-          <label>Prénom Nom du patient</label>
-          <input type="text" id="patientName" name="patientName" required>
           <div class="row">
-            <div style="flex:1">
+            <div class="col">
+              <label>Prénom Nom du SAMS</label>
+              <input type="text" id="samsName" name="samsName" required>
+            </div>
+            <div class="col">
+              <label>Prénom Nom du patient</label>
+              <input type="text" id="patientName" name="patientName" required>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col">
               <label>Date de naissance</label>
               <input type="date" id="dob" name="dob">
             </div>
-            <div style="flex:1">
+            <div class="col">
               <label>Profession</label>
               <input type="text" id="profession" name="profession">
             </div>
           </div>
+          <label>Raison de l’hospitalisation</label>
+          <textarea id="raison" name="raison"></textarea>
           <label>Blessures (sélectionnez et ajoutez)</label>
-          <div class="row">
+          <div class="row invoice-item">
             <select id="blessureType">
               <option value="légère">Légère (1000$)</option>
               <option value="moyenne">Moyenne (2500$)</option>
@@ -94,10 +108,8 @@ h2{margin:0 0 16px;font-size:20px}
             <button type="button" id="addBlessure" class="ghost">Ajouter</button>
           </div>
           <div id="blessuresList" class="invoice-section"></div>
-          <label>Raison de l’hospitalisation</label>
-          <textarea id="raison" name="raison"></textarea>
-          <label>Examens</label>
-          <div class="row">
+          <label>Examens (sélectionnez et ajoutez)</label>
+          <div class="row invoice-item">
             <select id="examenType">
               <option value="IRM">IRM (500$)</option>
               <option value="Radio">Radio (500$)</option>
@@ -108,17 +120,18 @@ h2{margin:0 0 16px;font-size:20px}
           </div>
           <div id="examensList" class="invoice-section"></div>
           <label>Accessoires (ex: béquilles, fauteuil - 2000$ / unité)</label>
-          <div class="row">
+          <div class="row invoice-item">
             <input type="text" id="accessoireDesc" placeholder="Description">
             <input type="number" id="accessoireQty" min="1" value="1" style="width:80px">
             <button type="button" id="addAccessoire" class="ghost">Ajouter</button>
           </div>
           <div id="accessoiresList" class="invoice-section"></div>
           <label>Chambre privée (10000$ / unité)</label>
-          <div class="row">
+          <div class="row invoice-item">
             <input type="number" id="chambreQty" min="0" value="0" style="width:80px">
             <span>unités</span>
           </div>
+          <div id="formError" class="error" style="display:none;"></div>
           <div class="actions">
             <button class="primary" type="submit">Enregistrer</button>
             <button type="button" id="clearForm" class="ghost">Effacer</button>
@@ -150,19 +163,27 @@ const views = {
 }
 const navButtons = ['list','new'].map(id => document.getElementById('nav-'+id))
 const form = document.getElementById('patientForm')
+const formError = document.getElementById('formError')
 function show(view){
   Object.values(views).forEach(v=>v.style.display='none')
   views[view].style.display='block'
   navButtons.forEach(b=>b.classList.remove('active'))
   if(view!=='dossier') document.getElementById('nav-'+view).classList.add('active')
+  formError.style.display = 'none'
 }
 let patients=[], current=null
 async function loadPatients(){
-  const { data, error } = await supabase.from('patients').select('*').order('id', { ascending: false })
-  if(error) console.error(error)
-  patients = data||[]
-  renderSidebarList()
-  renderMainList()
+  try {
+    const { data, error } = await supabase.from('patients').select('*').order('id', { ascending: false })
+    if(error) throw error
+    patients = data||[]
+    document.querySelector('.loading').style.display = 'none'
+    renderSidebarList()
+    renderMainList()
+  } catch (error) {
+    console.error('Erreur chargement patients:', error)
+    document.getElementById('listContent').innerHTML = `<div class="error">Erreur de connexion à la base de données: ${error.message}. Vérifiez la table 'patients' et les permissions RLS.</div>`
+  }
 }
 function renderSidebarList(filter=""){
   const listDiv=document.getElementById('patientList')
@@ -180,6 +201,10 @@ function renderMainList(filter=""){
   const listDiv=document.getElementById('listContent')
   listDiv.innerHTML=""
   const filtered = patients.filter(p=>p.patientName.toLowerCase().includes(filter.toLowerCase()))
+  if(filtered.length === 0){
+    listDiv.innerHTML = '<div class="muted">Aucun patient trouvé.</div>'
+    return
+  }
   filtered.forEach(p=>{
     const div=document.createElement('div')
     div.className="patient-item"
@@ -193,7 +218,7 @@ document.getElementById('searchPatient').addEventListener('input', e=>{
   if(views.list.style.display === 'block') renderMainList(e.target.value)
 })
 async function openDossier(id){
-  current = patients.find(p=>p.id === id)
+  current = patients.find(p=>p.id === parseInt(id))
   if(!current) return
   show('dossier')
   renderDossier()
@@ -201,24 +226,41 @@ async function openDossier(id){
 function renderDossier(){
   if(!current) return
   const r = document.getElementById('rapportContent')
-  const blessures = current.blessures ? current.blessures.map(b=>`- ${b.desc} (${b.type}, x${b.qty}) : ${b.total}$`).join("\n") : ""
-  const examens = current.examens ? current.examens.map(e=>`- ${e.type} (x${e.qty}) : ${e.total}$`).join("\n") : ""
-  const accessoires = current.accessoires ? current.accessoires.map(a=>`- ${a.desc} (x${a.qty}) : ${a.total}$`).join("\n") : ""
-  const chambre = current.chambreQty > 0 ? `- Chambre privée (x${current.chambreQty}) : ${current.chambreCost}$` : ""
+  let blessures = ''
+  if(current.blessures && current.blessures.length > 0){
+    blessures = current.blessures.map(b=>`- ${b.desc || ''} (${b.type}, x${b.qty}) : ${b.total}$`).join("\n")
+  }
+  let examens = ''
+  if(current.examens && current.examens.length > 0){
+    examens = current.examens.map(e=>`- ${e.type} (x${e.qty}) : ${e.total}$`).join("\n")
+  }
+  let accessoires = ''
+  if(current.accessoires && current.accessoires.length > 0){
+    accessoires = current.accessoires.map(a=>`- ${a.desc || ''} (x${a.qty}) : ${a.total}$`).join("\n")
+  }
+  let chambre = ''
+  if(current.chambreQty > 0){
+    chambre = `- Chambre privée (x${current.chambreQty}) : ${current.chambreCost || (current.chambreQty * 10000)}$`
+  }
   r.textContent = `Prénom Nom du SAMS: ${current.samsName||''}
 Prénom Nom patient: ${current.patientName||''}
 Date de naissance: ${current.dob||''}
 Profession: ${current.profession||''}
 Raison de l’hospitalisation:
 ${current.raison||''}
+
 Blessures:
-${blessures}
+${blessures || 'Aucune'}
+
 Examens:
-${examens}
+${examens || 'Aucun'}
+
 Accessoires:
-${accessoires}
+${accessoires || 'Aucun'}
+
 Chambre privée:
-${chambre}
+${chambre || 'Aucune'}
+
 Coût total: ${current.totalCost||0}$`
 }
 function calculateCosts(patient){
@@ -226,7 +268,7 @@ function calculateCosts(patient){
   patient.blessures = patient.blessures || []
   patient.blessures.forEach(b => {
     const costMap = {légère:1000, moyenne:2500, grave:3000}
-    b.total = b.qty * costMap[b.type]
+    b.total = b.qty * (costMap[b.type] || 0)
     total += b.total
   })
   patient.examens = patient.examens || []
@@ -239,7 +281,7 @@ function calculateCosts(patient){
     a.total = a.qty * 2000
     total += a.total
   })
-  patient.chambreQty = patient.chambreQty || 0
+  patient.chambreQty = parseInt(patient.chambreQty) || 0
   patient.chambreCost = patient.chambreQty * 10000
   total += patient.chambreCost
   patient.totalCost = total
@@ -247,45 +289,77 @@ function calculateCosts(patient){
 }
 form.addEventListener('submit', async e=>{
   e.preventDefault()
-  let patient={
-    samsName: form.samsName.value,
-    patientName: form.patientName.value,
-    dob: form.dob.value,
-    profession: form.profession.value,
-    raison: form.raison.value,
-    blessures: getListItems('blessuresList'),
-    examens: getListItems('examensList'),
-    accessoires: getListItems('accessoiresList'),
-    chambreQty: parseInt(document.getElementById('chambreQty').value) || 0
+  formError.style.display = 'none'
+  try {
+    let patient={
+      samsName: form.samsName.value.trim(),
+      patientName: form.patientName.value.trim(),
+      dob: form.dob.value,
+      profession: form.profession.value.trim(),
+      raison: form.raison.value.trim(),
+      blessures: getListItems('blessuresList', true),
+      examens: getListItems('examensList', false),
+      accessoires: getListItems('accessoiresList', true),
+      chambreQty: parseInt(document.getElementById('chambreQty').value) || 0
+    }
+    if (!patient.samsName || !patient.patientName) {
+      throw new Error('Nom SAMS et patient requis')
+    }
+    patient = calculateCosts(patient)
+    let result
+    if(current){
+      const { error } = await supabase.from('patients').update(patient).eq('id',current.id)
+      if(error) throw error
+      result = { id: current.id }
+    } else {
+      const { data, error } = await supabase.from('patients').insert([patient]).select('id').single()
+      if(error) throw error
+      result = data
+    }
+    await loadPatients()
+    alert('Patient enregistré avec succès.')
+    clearForm()
+    show('list')
+  } catch (error) {
+    console.error('Erreur enregistrement:', error)
+    formError.textContent = `Erreur: ${error.message}`
+    formError.style.display = 'block'
   }
-  patient = calculateCosts(patient)
-  if(current){
-    await supabase.from('patients').update(patient).eq('id',current.id)
-  } else {
-    const { data } = await supabase.from('patients').insert([patient]).select()
-    if(data) current = data[0]
-  }
-  await loadPatients()
-  alert('Patient enregistré.')
-  clearForm()
-  show('list')
 })
-function getListItems(listId){
+function getListItems(listId, hasType){
   const list = document.getElementById(listId)
-  return Array.from(list.children).map(item => {
-    const [descEl, typeEl, qtyEl] = item.querySelectorAll('span')
-    return {
-      desc: descEl ? descEl.textContent : '',
-      type: typeEl ? typeEl.textContent : '',
-      qty: parseInt(qtyEl ? qtyEl.textContent : 1)
+  const items = []
+  Array.from(list.children).forEach(item => {
+    const spans = item.querySelectorAll('span:not([class])')
+    if(spans.length >= 2){
+      const qty = parseInt(spans[spans.length - 1].textContent) || 1
+      if(hasType){
+        // For blessures and accessoires: desc, type, qty
+        if(spans.length >= 3){
+          items.push({
+            desc: spans[0].textContent.trim(),
+            type: spans[1].textContent.trim(),
+            qty: qty
+          })
+        }
+      } else {
+        // For examens: type, qty
+        items.push({
+          type: spans[0].textContent.trim(),
+          qty: qty
+        })
+      }
     }
   })
+  return items
 }
 document.getElementById('clearForm').addEventListener('click', clearForm)
 function clearForm(){
   form.reset()
   ;['blessuresList','examensList','accessoiresList'].forEach(id => document.getElementById(id).innerHTML = '')
+  document.getElementById('chambreQty').value = 0
   current = null
+  formError.style.display = 'none'
 }
 document.getElementById('editPatient').addEventListener('click',()=>{
   if(!current) return
@@ -306,8 +380,14 @@ function renderListItems(listId, items, hasDesc){
   items.forEach((item, idx) => {
     const div = document.createElement('div')
     div.className = 'invoice-item'
-    div.innerHTML = hasDesc ? `<span>${item.desc}</span> <span>${item.type}</span> <span>${item.qty}</span>` : `<span>${item.type}</span> <span>${item.qty}</span>`
-    div.innerHTML += `<button type="button" class="ghost" data-idx="${idx}" style="padding:4px 8px;font-size:12px">Suppr</button>`
+    let html = ''
+    if(hasDesc){
+      html = `<span>${item.desc || ''}</span> <span>${item.type}</span> <span>${item.qty}</span>`
+    } else {
+      html = `<span>${item.type}</span> <span>${item.qty}</span>`
+    }
+    html += ` <button type="button" class="ghost" data-idx="${idx}" style="padding:4px 8px;font-size:12px">Suppr</button>`
+    div.innerHTML = html
     div.querySelector('button').addEventListener('click', () => div.remove())
     list.appendChild(div)
   })
@@ -315,36 +395,43 @@ function renderListItems(listId, items, hasDesc){
 document.getElementById('deletePatient').addEventListener('click', async ()=>{
   if(!current) return
   if(confirm("Supprimer ce patient ?")){
-    await supabase.from('patients').delete().eq('id',current.id)
-    current=null
-    await loadPatients()
-    show('list')
+    try {
+      const { error } = await supabase.from('patients').delete().eq('id',current.id)
+      if(error) throw error
+      current=null
+      await loadPatients()
+      show('list')
+      alert('Patient supprimé.')
+    } catch (error) {
+      console.error('Erreur suppression:', error)
+      alert(`Erreur: ${error.message}`)
+    }
   }
 })
 document.getElementById('printReport').addEventListener('click',()=>window.print())
-document.getElementById('addBlessure').addEventListener('click', () => addListItem('blessuresList', true))
-document.getElementById('addExamen').addEventListener('click', () => addListItem('examensList', false))
-document.getElementById('addAccessoire').addEventListener('click', () => addListItem('accessoiresList', true))
-function addListItem(listId, hasDesc){
+document.getElementById('addBlessure').addEventListener('click', () => addListItem('blessuresList', true, 'blessureDesc', 'blessureType', 'blessureQty'))
+document.getElementById('addExamen').addEventListener('click', () => addListItem('examensList', false, null, 'examenType', 'examenQty'))
+document.getElementById('addAccessoire').addEventListener('click', () => addListItem('accessoiresList', true, 'accessoireDesc', null, 'accessoireQty'))
+function addListItem(listId, hasDesc, descId, typeId, qtyId){
+  let desc = '', type = ''
+  const qty = parseInt(document.getElementById(qtyId).value) || 1
+  if(hasDesc && descId){
+    desc = document.getElementById(descId).value.trim()
+    if(!desc) return alert('Description requise pour blessures et accessoires')
+  }
+  if(typeId){
+    type = document.getElementById(typeId).value
+  }
   const list = document.getElementById(listId)
   const div = document.createElement('div')
   div.className = 'invoice-item'
-  if(hasDesc){
-    const desc = document.getElementById(listId.replace('List','Desc')).value.trim()
-    const type = document.getElementById(listId.replace('List','Type')).value
-    const qty = parseInt(document.getElementById(listId.replace('List','Qty')).value) || 1
-    if(!desc) return alert('Description requise')
-    div.innerHTML = `<span>${desc}</span> <span>${type}</span> <span>${qty}</span>`
-  } else {
-    const type = document.getElementById('examenType').value
-    const qty = parseInt(document.getElementById('examenQty').value) || 1
-    div.innerHTML = `<span>${type}</span> <span>${qty}</span>`
-  }
-  div.innerHTML += `<button type="button" class="ghost" style="padding:4px 8px;font-size:12px">Suppr</button>`
+  let html = hasDesc ? `<span>${desc}</span> <span>${type}</span>` : `<span>${type}</span>`
+  html += ` <span>${qty}</span> <button type="button" class="ghost" style="padding:4px 8px;font-size:12px">Suppr</button>`
+  div.innerHTML = html
   div.querySelector('button').addEventListener('click', () => div.remove())
   list.appendChild(div)
-  if(hasDesc) document.getElementById(listId.replace('List','Desc')).value = ''
-  document.getElementById(listId.replace('List','Qty')).value = 1
+  if(descId) document.getElementById(descId).value = ''
+  if(qtyId) document.getElementById(qtyId).value = 1
 }
 document.getElementById('nav-list').addEventListener('click',()=>show('list'))
 document.getElementById('nav-new').addEventListener('click',()=>{clearForm(); show('new')})
