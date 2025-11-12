@@ -68,7 +68,7 @@ button.ghost:hover{border-color:var(--primary);color:var(--primary);background:#
             <div class="col"><label>Prénom Nom ID du patient</label><input type="text" id="patientID" required></div>
           </div>
           <label>Date de l'impayé</label>
-          <input type="date" id="date" required>
+          <input type="datetime-local" id="date" required>
           <label>Somme à rembourser</label>
           <input type="text" id="cost" placeholder="ex: 2500" required>
           <div id="formError" class="error" style="display:none;"></div>
@@ -81,6 +81,9 @@ button.ghost:hover{border-color:var(--primary);color:var(--primary);background:#
       <section id="view-dossier" class="card" style="display:none;">
         <h2>Dossier impayé</h2>
         <div id="report" class="report"></div>
+        <div class="actions">
+          <button class="ghost" onclick="show('list')">Retour à la liste</button>
+        </div>
       </section>
     </main>
   </div>
@@ -119,13 +122,13 @@ async function load() {
 
 function render(filter = "") {
   const f = items.filter(i => i.patientID.toLowerCase().includes(filter.toLowerCase()))
-  document.getElementById('list').innerHTML = f.map(i => `<div class="patient-item" onclick="open(${i.id})"><strong>${i.patientID}</strong><div class="muted">${i.cost}$</div></div>`).join('')
-  document.getElementById('listContent').innerHTML = f.length ? f.map(i => `<div class="patient-item" onclick="open(${i.id})"><strong>${i.patientID}</strong><div class="muted">${new Date(i.date).toLocaleDateString('fr-FR')} • ${i.cost}$</div></div>`).join('') : '<div class="muted">Aucun impayé</div>'
+  document.getElementById('list').innerHTML = f.map(i => `<div class="patient-item" onclick="openDossier(${i.id})"><div><strong>${i.patientID}</strong><div class="muted">${new Date(i.date).toLocaleString('fr-FR')}</div></div></div>`).join('')
+  document.getElementById('listContent').innerHTML = f.length ? f.map(i => `<div class="patient-item" onclick="openDossier(${i.id})"><div><strong>${i.patientID}</strong><div class="muted">${new Date(i.date).toLocaleString('fr-FR')} • ${i.cost}$</div></div></div>`).join('') : '<div class="muted">Aucun impayé</div>'
 }
 
-window.open = (id) => {
+function openDossier(id) {
   current = items.find(x => x.id === id)
-  document.getElementById('report').textContent = `Prénom Nom du SAMS à rembourser : ${current.samsName}\nPrénom Nom ID du patient : ${current.patientID}\nDate de l'impayé : ${new Date(current.date).toLocaleDateString('fr-FR')}\nSomme à rembourser : ${current.cost}$`
+  document.getElementById('report').textContent = `Prénom Nom du SAMS à rembourser : ${current.samsName}\nPrénom Nom ID du patient : ${current.patientID}\nDate de l'impayé : ${new Date(current.date).toLocaleString('fr-FR')}\nSomme à rembourser : ${current.cost}$`
   show('dossier')
 }
 
