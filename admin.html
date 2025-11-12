@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SAMS - Admin Logs</title>
+<style>
+:root{--primary:#1e40af;--danger:#dc2626;--bg:#f8f9fa}
+body{font-family:system-ui;margin:0;background:var(--bg);color:#1f1f1f}
+header{background:var(--primary);color:white;padding:16px 24px;display:flex;align-items:center;gap:16px}
+header img{height:50px;border-radius:10px}
+h1{margin:0;font-size:20px}
+.container{max-width:1100px;margin:32px auto;padding:16px}
+.card{background:white;padding:24px;border-radius:14px;box-shadow:0 4px 12px rgba(0,0,0,0.08)}
+table{width:100%;border-collapse:collapse;margin-top:16px}
+th,td{padding:12px 8px;border-bottom:1px solid #eee;text-align:left;font-size:14px}
+th{background:#f1f5f9;font-weight:600}
+.action-create{color:#16a34a}
+.action-update{color:#ea580c}
+.action-delete{color:var(--danger)}
+.action-login{color:#2563eb}
+.action-invoice{color:#7c3aed}
+</style>
+</head>
+<body>
+<header>
+  <img src="https://i.imgur.com/N1tQTgU.png" alt="SAMS">
+  <h1>SAMS - Journal d'activité</h1>
+</header>
+<div class="container">
+  <div class="card">
+    <h2>Logs système (dernières 100 actions)</h2>
+    <table id="logsTable">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Utilisateur</th>
+          <th>Action</th>
+          <th>Cible</th>
+          <th>Détails</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+
+const SUPABASE_URL = "https://sevrfgivcpefyykuffti.supabase.co"
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNldnJmZ2l2Y3BlZnl5a3VmZnRpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI5NDI1NTMsImV4cCI6MjA3ODUxODU1M30.YZnkSHsVWKQEhfU7xYfWyTFmtkM28Zuzdu7Y1sjBXQc"
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY)
+
+const user = JSON.parse(localStorage.getItem('sams_user') || '{}')
+if (!user || user.permission !== 'admin') {
+  alert("Accès refusé")
+  window.location.href = 'login.html'
+}
+
+async function loadLogs() {
+  const { data } = await supabase
+    .from('logs')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(100)
+
+  const tbody = document.querySelector('#logsTable tbody')
+  tbody.innerHTML = data.map(log => {
+    const date = new Date(log.created_at).toLocaleString('fr-FR')
+    const actionClass = `action-${log.action}`
+    const actionLabel = {
+      login: 'Connexion',
+      create: 'Création',
+      update: 'Modification',
+      delete: 'Suppression',
+      invoice: 'Facture'
+    }[log.action] || log.action
+
+    return `
+      <tr>
+        <td>${date}</td>
+        <td><strong>${log.username}</strong></td>
+        <td><span class="${actionClass}">${actionLabel}</span></td>
+        <td>${log.target}</td>
+        <td>${log.details}</td>
+      </tr>`
+  }).join('')
+}
+
+loadLogs()
+</script>
+</body>
+</html>
