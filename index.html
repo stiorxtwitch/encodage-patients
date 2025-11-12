@@ -16,7 +16,7 @@
   --border:#fecaca;
   --shadow:0 6px 18px rgba(225,29,72,0.08);
   --danger:#dc2626;
-  --overlay:rgba(255,255,255,0.68); /* PLUS TRANSPARENT */
+  --overlay:rgba(255,255,255,0.68);
 }
 
 body{
@@ -29,12 +29,11 @@ body{
   min-height:100vh;
 }
 
-/* VOILE BLANC + FLOU POUR LAISSER VOIR L'IMAGE */
 body::before{
   content:"";
   position:fixed;
   top:0; left:0; right:0; bottom:0;
-  background:rgba(255,255,255,0.68); /* Moins opaque */
+  background:rgba(255,255,255,0.68);
   backdrop-filter:blur(4px);
   z-index:-1;
 }
@@ -69,7 +68,7 @@ header h1{
 }
 .grid{display:grid;grid-template-columns:320px 1fr;gap:24px}
 .card{
-  background:rgba(255,255,255,0.88); /* Cartes plus transparentes */
+  background:rgba(255,255,255,0.88);
   padding:20px;
   border-radius:14px;
   box-shadow:var(--shadow);
@@ -123,6 +122,7 @@ button.danger:hover{background:rgba(220,38,38,0.05)}
       <div class="menu">
         <button id="nav-list" class="active">Liste patients</button>
         <button id="nav-new">Nouveau patient</button>
+        <!-- BOUTON ADMIN ICI (ajouté par JS) -->
       </div>
       <input type="text" id="searchPatient" class="search-bar" placeholder="Rechercher un patient...">
       <div id="patientList"></div>
@@ -183,15 +183,41 @@ const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY)
 
+// === PROTECTION : Vérifie le login ===
+const userData = localStorage.getItem('sams_user')
+if (!userData) {
+  window.location.href = 'login.html'
+  throw new Error('Accès refusé')
+}
+const user = JSON.parse(userData)
+
+// === AJOUT BOUTON ADMIN ===
+if (user.permission === 'admin') {
+  const menu = document.querySelector('.menu')
+  const adminBtn = document.createElement('button')
+  adminBtn.textContent = 'Admin Panel'
+  adminBtn.style.cssText = 'background:#1e40af;color:white;margin-bottom:8px;'
+  adminBtn.onclick = () => window.location.href = 'admin.html'
+  menu.insertBefore(adminBtn, menu.firstChild)
+}
+
+// === FONCTION LOG ===
+async function logAction(action, target, details) {
+  await supabase.from('logs').insert({
+    user_id: user.id,
+    username: user.user,
+    action,
+    target,
+    details
+  })
+}
+
 const views = { list: document.getElementById('view-list'), new: document.getElementById('view-new'), dossier: document.getElementById('view-dossier') }
 let patients = [], current = null
 let invoiceItems = []
 
 function formatDateTime(date) {
-  return date.toLocaleString('fr-FR', {
-    day: '2-digit', month: '2-digit', year: 'numeric',
-    hour: '2-digit', minute: '2-digit', second: '2-digit'
-  })
+  return date.toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
 }
 
 function show(view) {
@@ -334,6 +360,8 @@ window.saveInvoice = async () => {
       invoiceRecap: current.invoiceRecap,
       invoiceDate: current.invoiceDate
     }).eq('id', current.id)
+
+    await logAction('invoice', 'patient', `ID: ${current.id} | +${total}$ | ${recap}`)
     await loadPatients()
     renderDossier()
     document.querySelector('[style*=fixed]')?.remove()
@@ -360,10 +388,15 @@ document.getElementById('patientForm').onsubmit = async e => {
     createdAt: current ? current.createdAt : now,
     invoiceDate: current?.invoiceDate || null
   }
+
   try {
-    current
-      ? await supabase.from('patients').update(p).eq('id', current.id)
-      : await supabase.from('patients').insert([p])
+    if (current) {
+      await supabase.from('patients').update(p).eq('id', current.id)
+      await logAction('update', 'patient', `ID: ${current.id} | ${p.patientNameId}`)
+    } else {
+      const { data } = await supabase.from('patients').insert([p]).select()
+      await logAction('create', 'patient', `ID: ${data[0].id} | ${p.patientNameId}`)
+    }
     await loadPatients()
     alert("Patient enregistré")
     clearForm()
@@ -372,6 +405,14 @@ document.getElementById('patientForm').onsubmit = async e => {
     document.getElementById('formError').textContent = err.message
     document.getElementById('formError').style.display = 'block'
   }
+}
+
+document.getElementById('deletePatient').onclick = async () => {
+  if (!current || !confirm("Supprimer ce patient ?")) return
+  await logAction('delete', 'patient', `ID: ${current.id} | ${current.patientNameId}`)
+  await supabase.from('patients').delete().eq('id', current.id)
+  await loadPatients()
+  show('list')
 }
 
 function clearForm() {
@@ -394,19 +435,12 @@ document.getElementById('editPatient').onclick = () => {
   document.getElementById('examens').value = current.examens || ''
 }
 
-document.getElementById('deletePatient').onclick = async () => {
-  if (!current || !confirm("Supprimer ce patient ?")) return
-  await supabase.from('patients').delete().eq('id', current.id)
-  await loadPatients()
-  show('list')
-}
-
 document.getElementById('printReport').onclick = () => window.print()
 document.getElementById('searchPatient').oninput = e => renderLists(e.target.value)
 document.getElementById('nav-list').onclick = () => show('list')
 document.getElementById('nav-new').onclick = () => { clearForm(); show('new') }
 
 loadPatients()
-</script
+</script>
 </body>
 </html>
