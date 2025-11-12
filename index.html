@@ -3,46 +3,209 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Gestion Patients - Hôpital</title>
+<title>SAMS - Gestion Patients</title>
 <style>
-:root{--accent:#0b76ef;--bg:#f6f8fb;--card:#fff;--muted:#6b7280;--border:#e6e9ef;--shadow:0 6px 18px rgba(16,24,40,0.06);--danger:#e11d48}
-body{font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;margin:0;background:var(--bg);color:#111}
-header{background:linear-gradient(90deg,var(--accent),#3aa0ff);color:white;padding:18px 24px;display:flex;align-items:center;justify-content:space-between}
-header h1{margin:0;font-size:18px}
+:root{
+  --primary:#e11d48;     /* Rouge SAMS */
+  --primary-light:#fee2e2;
+  --primary-dark:#991b1b;
+  --bg:#fff5f5;
+  --card:#ffffff;
+  --text:#1f1f1f;
+  --muted:#6b7280;
+  --border:#fecaca;
+  --shadow:0 6px 18px rgba(225,29,72,0.08);
+  --danger:#dc2626;
+}
+body{
+  font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+}
+header{
+  background:linear-gradient(90deg,var(--primary),var(--primary-dark));
+  color:white;
+  padding:16px 24px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  box-shadow:0 4px 12px rgba(225,29,72,0.15);
+}
+header img{
+  height:40px;
+  filter:brightness(0) invert(1);
+}
+header h1{
+  margin:0;
+  font-size:20px;
+  font-weight:700;
+}
 .container{max-width:1200px;margin:28px auto;padding:16px}
 .grid{display:grid;grid-template-columns:320px 1fr;gap:24px}
-.card{background:var(--card);padding:20px;border-radius:12px;box-shadow:var(--shadow)}
-.menu button{display:block;width:100%;text-align:left;padding:12px;border:0;background:none;border-radius:8px;margin-bottom:8px;cursor:pointer;transition:0.2s}
-.menu button:hover{background:#f0f7ff}
-.menu button.active{background:#eef6ff;color:var(--accent);font-weight:600}
-label{display:block;margin-top:12px;font-weight:600;font-size:14px}
-input,select,textarea{width:100%;padding:10px;margin-top:6px;border-radius:6px;border:1px solid var(--border);box-sizing:border-box}
-input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent)}
+.card{
+  background:var(--card);
+  padding:20px;
+  border-radius:14px;
+  box-shadow:var(--shadow);
+  border:1px solid var(--border);
+}
+.menu button{
+  display:block;
+  width:100%;
+  text-align:left;
+  padding:12px;
+  border:0;
+  background:none;
+  border-radius:10px;
+  margin-bottom:8px;
+  cursor:pointer;
+  transition:0.2s;
+  font-weight:500;
+}
+.menu button:hover{background:var(--primary-light);color:var(--primary)}
+.menu button.active{
+  background:var(--primary);
+  color:white;
+  font-weight:600;
+}
+label{
+  display:block;
+  margin-top:12px;
+  font-weight:600;
+  font-size:14px;
+  color:var(--primary-dark);
+}
+input,select,textarea{
+  width:100%;
+  padding:10px;
+  margin-top:6px;
+  border-radius:8px;
+  border:1px solid var(--border);
+  box-sizing:border-box;
+  font-size:14px;
+}
+input:focus,select:focus,textarea:focus{
+  outline:none;
+  border-color:var(--primary);
+  box-shadow:0 0 0 3px rgba(225,29,72,0.15);
+}
 textarea{min-height:100px;resize:vertical}
 .row{display:flex;gap:12px;flex-wrap:wrap}
 .col{flex:1;min-width:200px}
 .actions{margin-top:16px;display:flex;gap:10px}
-button.primary{background:var(--accent);color:white;padding:12px 16px;border:0;border-radius:8px;cursor:pointer}
-button.ghost{background:transparent;border:1px solid var(--border);padding:12px 16px;border-radius:8px;cursor:pointer}
-button.ghost:hover{border-color:var(--accent);color:var(--accent)}
-button.danger{border-color:var(--danger);color:var(--danger)}
-.patient-item{padding:12px;border-radius:8px;border:1px solid #f0f3f7;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;cursor:pointer}
-.patient-item:hover{background:#f9fcff}
+button.primary{
+  background:var(--primary);
+  color:white;
+  padding:12px 18px;
+  border:0;
+  border-radius:10px;
+  cursor:pointer;
+  font-weight:600;
+  transition:0.2s;
+}
+button.primary:hover{background:var(--primary-dark)}
+button.ghost{
+  background:transparent;
+  border:1.5px solid var(--border);
+  padding:12px 18px;
+  border-radius:10px;
+  cursor:pointer;
+  font-weight:500;
+  transition:0.2s;
+}
+button.ghost:hover{
+  border-color:var(--primary);
+  color:var(--primary);
+  background:var(--primary-light);
+}
+button.danger{
+  border-color:var(--danger);
+  color:var(--danger);
+}
+button.danger:hover{
+  background:rgba(220,38,38,0.05);
+  border-color:var(--danger);
+}
+.patient-item{
+  padding:14px;
+  border-radius:12px;
+  border:1px solid var(--border);
+  margin-bottom:10px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  cursor:pointer;
+  transition:0.2s;
+}
+.patient-item:hover{
+  background:var(--primary-light);
+  border-color:var(--primary);
+}
 .muted{color:var(--muted);font-size:13px}
-.report{white-space:pre-wrap;background:#fafcff;padding:16px;border-radius:8px;border:1px solid #e6f0ff;font-family:monospace;font-size:14px;line-height:1.7}
-.search-bar{margin:12px 0;padding:10px;border-radius:6px;border:1px solid var(--border)}
-.invoice-item{display:flex;gap:8px;align-items:center;margin:6px 0;flex-wrap:wrap}
-.invoice-item span{flex:1;min-width:100px;padding:6px;background:#f8f9fc;border-radius:4px}
-.invoice-item button{padding:4px 8px;font-size:12px}
-.error{color:var(--danger);margin:10px 0;padding:10px;background:#fee;border:1px solid #fecaca;border-radius:6px}
-.loading{text-align:center;color:var(--muted);padding:20px}
-@media print{.grid{grid-template-columns:1fr}.card{box-shadow:none;border:none}}
+.report{
+  white-space:pre-wrap;
+  background:#fffafa;
+  padding:18px;
+  border-radius:12px;
+  border:1px solid var(--border);
+  font-family:monospace;
+  font-size:14px;
+  line-height:1.8;
+  color:var(--text);
+}
+.search-bar{
+  margin:12px 0;
+  padding:10px 14px;
+  border-radius:10px;
+  border:1px solid var(--border);
+  font-size:14px;
+}
+.invoice-item{
+  display:flex;
+  gap:8px;
+  align-items:center;
+  margin:6px 0;
+  flex-wrap:wrap;
+}
+.invoice-item span{
+  flex:1;
+  min-width:100px;
+  padding:6px 10px;
+  background:var(--primary-light);
+  border-radius:6px;
+  font-size:13px;
+}
+.invoice-item button{
+  padding:4px 8px;
+  font-size:12px;
+  color:var(--danger);
+}
+.error{
+  color:var(--danger);
+  margin:10px 0;
+  padding:12px;
+  background:#fee;
+  border:1px solid #fecaca;
+  border-radius:10px;
+  font-size:14px;
+}
+.loading{
+  text-align:center;
+  color:var(--muted);
+  padding:20px;
+}
+@media print{
+  .grid{grid-template-columns:1fr}
+  .card{box-shadow:none;border:1px solid #ddd}
+  header{display:none}
+}
 </style>
 </head>
 <body>
 <header>
-  <h1>Gestion Patients</h1>
-  <div class="muted">Hôpital Pro</div>
+  <img src="https://static.wikia.nocookie.net/reroll-rp/images/7/77/SAMS.png/revision/latest?cb=20231210163959&path-prefix=fr" alt="SAMS Logo">
+  <h1>SAMS - Gestion Patients</h1>
 </header>
 <div class="container">
   <div class="grid">
@@ -51,7 +214,7 @@ button.danger{border-color:var(--danger);color:var(--danger)}
         <button id="nav-list" class="active">Liste patients</button>
         <button id="nav-new">Nouveau patient</button>
       </div>
-      <input type="text" id="searchPatient" class="search-bar" placeholder="Rechercher...">
+      <input type="text" id="searchPatient" class="search-bar" placeholder="Rechercher un patient...">
       <div id="patientList"></div>
     </aside>
     <main>
@@ -191,7 +354,7 @@ ${invoice}
 Coût total (en $) : ${c.totalCost || 0} $${recap}`.trim()
 }
 
-// === BOUTON AJOUTER FACTURE ===
+// === AJOUTER FACTURE ===
 document.getElementById('addInvoiceBtn').onclick = () => {
   invoiceItems = []
   showInvoiceModal()
@@ -202,7 +365,7 @@ function showInvoiceModal() {
   modal.style.cssText = `position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:1000`
   modal.innerHTML = `
     <div class="card" style="width:500px;max-height:80vh;overflow:auto">
-      <h3>Ajouter une facture</h3>
+      <h3 style="color:var(--primary)">Ajouter une facture</h3>
       <div id="invoiceList"><div class="muted">Aucun élément</div></div>
       <div class="row" style="margin-top:10px">
         <select id="itemType">
@@ -245,7 +408,7 @@ function updateInvoiceList() {
     <div class="invoice-item">
       <span>${item.label} x${item.qty}</span>
       <span>${item.cost}$</span>
-      <button class="ghost" style="color:red;font-size:12px" onclick="invoiceItems.splice(${i},1); updateInvoiceList()">Suppr</button>
+      <button class="ghost" style="color:var(--danger)" onclick="invoiceItems.splice(${i},1); updateInvoiceList()">Suppr</button>
     </div>`).join('') || '<div class="muted">Aucun élément</div>'
 }
 
@@ -327,7 +490,7 @@ document.getElementById('editPatient').onclick = () => {
 }
 
 document.getElementById('deletePatient').onclick = async () => {
-  if (!current || !confirm("Supprimer ?")) return
+  if (!current || !confirm("Supprimer ce patient ?")) return
   await supabase.from('patients').delete().eq('id', current.id)
   await loadPatients()
   show('list')
