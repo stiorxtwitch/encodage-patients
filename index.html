@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Gestion Patients - Hôpital Pro</title>
+<title>Gestion Patients - Hôpital</title>
 <style>
 :root{--accent:#0b76ef;--bg:#f6f8fb;--card:#fff;--muted:#6b7280;--border:#e6e9ef;--shadow:0 6px 18px rgba(16,24,40,0.06);--danger:#e11d48}
 body{font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;margin:0;background:var(--bg);color:#111}
@@ -23,28 +23,29 @@ textarea{min-height:100px;resize:vertical}
 .col{flex:1;min-width:200px}
 .actions{margin-top:16px;display:flex;gap:10px}
 button.primary{background:var(--accent);color:white;padding:12px 16px;border:0;border-radius:8px;cursor:pointer}
-button.primary:hover{background:#0964d0}
 button.ghost{background:transparent;border:1px solid var(--border);padding:12px 16px;border-radius:8px;cursor:pointer}
 button.ghost:hover{border-color:var(--accent);color:var(--accent)}
 button.danger{border-color:var(--danger);color:var(--danger)}
-button.danger:hover{background:rgba(225,29,72,0.05)}
 .patient-item{padding:12px;border-radius:8px;border:1px solid #f0f3f7;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;cursor:pointer}
 .patient-item:hover{background:#f9fcff}
 .muted{color:var(--muted);font-size:13px}
-.report{white-space:pre-wrap;background:#fafcff;padding:14px;border-radius:8px;border:1px solid #e6f0ff;font-family:monospace;font-size:14px;line-height:1.6}
+.report{white-space:pre-wrap;background:#fafcff;padding:16px;border-radius:8px;border:1px solid #e6f0ff;font-family:monospace;font-size:14px;line-height:1.7}
 .search-bar{margin:12px 0;padding:10px;border-radius:6px;border:1px solid var(--border)}
 .invoice-item{display:flex;gap:8px;align-items:center;margin:6px 0;flex-wrap:wrap}
 .invoice-item span{flex:1;min-width:100px;padding:6px;background:#f8f9fc;border-radius:4px}
 .invoice-item button{padding:4px 8px;font-size:12px}
 .error{color:var(--danger);margin:10px 0;padding:10px;background:#fee;border:1px solid #fecaca;border-radius:6px}
 .loading{text-align:center;color:var(--muted);padding:20px}
+.context-menu{position:absolute;background:white;border:1px solid #ddd;border-radius:8px;padding:8px 0;box-shadow:0 4px 12px rgba(0,0,0,0.1);z-index:1000;display:none}
+.context-menu button{display:block;width:100%;text-align:left;padding:8px 16px;border:0;background:none;cursor:pointer}
+.context-menu button:hover{background:#f0f7ff}
 @media print{.grid{grid-template-columns:1fr}.card{box-shadow:none;border:none}}
 </style>
 </head>
 <body>
 <header>
   <h1>Gestion Patients</h1>
-  <div class="muted">Hôpital Pro v2</div>
+  <div class="muted">Hôpital Pro</div>
 </header>
 <div class="container">
   <div class="grid">
@@ -57,66 +58,30 @@ button.danger:hover{background:rgba(225,29,72,0.05)}
       <div id="patientList"></div>
     </aside>
     <main>
-      <!-- CORRIGÉ : ID présent -->
       <section id="view-list" class="card">
         <h2>Liste des patients</h2>
-        <div id="listContent">
-          <div class="loading">Connexion à Supabase...</div>
-        </div>
+        <div id="listContent"><div class="loading">Connexion à Supabase...</div></div>
       </section>
 
-      <!-- CORRIGÉ : ID présent -->
       <section id="view-new" class="card" style="display:none;">
         <h2 id="formTitle">Nouveau patient</h2>
         <form id="patientForm">
           <div class="row">
-            <div class="col"><label>SAMS</label><input type="text" id="samsName" required></div>
-            <div class="col"><label>Patient</label><input type="text" id="patientName" required></div>
+            <div class="col"><label>Prénom Nom du SAMS</label><input type="text" id="samsName" required></div>
+            <div class="col"><label>Prénom Nom ID du patient</label><input type="text" id="patientNameId" placeholder="ex: Jean Dupont #001" required></div>
           </div>
           <div class="row">
             <div class="col"><label>Date de naissance</label><input type="date" id="dob"></div>
             <div class="col"><label>Profession</label><input type="text" id="profession"></div>
           </div>
-          <label>Raison hospitalisation</label>
+          <label>Antécédents médicaux (les 2 derniers)</label>
+          <textarea id="antecedents" placeholder="ex: Hypertension, Diabète"></textarea>
+          <label>Récapitulatif des blessures</label>
+          <textarea id="blessures" placeholder="ex: Fracture tibia (grave)"></textarea>
+          <label>Récapitulatif de la raison de l’hospitalisation</label>
           <textarea id="raison"></textarea>
-
-          <label>Blessures</label>
-          <div class="row invoice-item">
-            <select id="blessureType">
-              <option value="légère">Légère (1000$)</option>
-              <option value="moyenne">Moyenne (2500$)</option>
-              <option value="grave">Grave (3000$)</option>
-            </select>
-            <input type="text" id="blessureDesc" placeholder="ex: Fracture tibia">
-            <input type="number" id="blessureQty" value="1" min="1" style="width:70px">
-            <button type="button" id="addBlessure" class="ghost">Ajouter</button>
-          </div>
-          <div id="blessuresList" class="invoice-section"></div>
-
-          <label>Examens</label>
-          <div class="row invoice-item">
-            <select id="examenType">
-              <option value="IRM">IRM (500$)</option>
-              <option value="Radio">Radio (500$)</option>
-              <option value="Échographie">Échographie (500$)</option>
-            </select>
-            <input type="number" id="examenQty" value="1" min="0" style="width:70px">
-            <button type="button" id="addExamen" class="ghost">Ajouter</button>
-          </div>
-          <div id="examensList" class="invoice-section"></div>
-
-          <label>Accessoires (2000$/unité)</label>
-          <div class="row invoice-item">
-            <input type="text" id="accessoireDesc" placeholder="ex: béquilles">
-            <input type="number" id="accessoireQty" value="1" min="0" style="width:70px">
-            <button type="button" id="addAccessoire" class="ghost">Ajouter</button>
-          </div>
-          <div id="accessoiresList" class="invoice-section"></div>
-
-          <label>Chambre privée (10000$)</label>
-          <div class="row invoice-item">
-            <input type="number" id="chambreQty" value="0" min="0" style="width:80px"> <span>unités</span>
-          </div>
+          <label>Examens (DÉTAILLER LES OP)</label>
+          <textarea id="examens" placeholder="ex: IRM x1, Radio x2"></textarea>
 
           <div id="formError" class="error" style="display:none;"></div>
           <div class="actions">
@@ -126,10 +91,9 @@ button.danger:hover{background:rgba(225,29,72,0.05)}
         </form>
       </section>
 
-      <!-- CORRIGÉ : ID présent -->
       <section id="view-dossier" class="card" style="display:none;">
         <h2>Dossier patient</h2>
-        <div id="rapportContent" class="report"></div>
+        <div id="rapportContent" class="report" oncontextmenu="showContextMenu(event)"></div>
         <div class="actions">
           <button id="editPatient" class="ghost">Modifier</button>
           <button id="deletePatient" class="danger ghost">Supprimer</button>
@@ -140,26 +104,20 @@ button.danger:hover{background:rgba(225,29,72,0.05)}
   </div>
 </div>
 
+<!-- Menu contextuel -->
+<div id="contextMenu" class="context-menu">
+  <button id="addInvoiceBtn">Ajouter une facture</button>
+</div>
+
 <script type="module">
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
 
 const SUPABASE_URL = "https://sevrfgivcpefyykuffti.supabase.co"
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNldnJmZ2F2Y3BlZnl5a3VmZnRpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI5NDI1NTMsImV4cCI6MjA3ODUxODU1M30.YZnkSHsVWKQEhfU7xYfWyTFmtkM28Zuzdu7Y1sjBXQc"
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNldnJmZ2l2Y3BlZnl5a3VmZnRpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI5NDI1NTMsImV4cCI6MjA3ODUxODU1M30.YZnkSHsVWKQEhfU7xYfWyTFmtkM28Zuzdu7Y1sjBXQc"
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY)
 
-// CORRIGÉ : Vérification que les éléments existent
-const views = {
-  list: document.getElementById('view-list'),
-  new: document.getElementById('view-new'),
-  dossier: document.getElementById('view-dossier')
-}
-
-if (!views.list || !views.new || !views.dossier) {
-  document.body.innerHTML = `<div style="padding:20px;color:red;font-weight:bold">ERREUR : Un des éléments #view-list, #view-new ou #view-dossier est manquant dans le HTML !</div>`
-  throw new Error("Vues manquantes")
-}
-
+const views = { list: document.getElementById('view-list'), new: document.getElementById('view-new'), dossier: document.getElementById('view-dossier') }
 let patients = [], current = null
 
 function show(view) {
@@ -171,29 +129,18 @@ function show(view) {
 
 async function loadPatients() {
   try {
-    console.log("Connexion à Supabase...")
     const { data, error } = await supabase.from('patients').select('*').order('id', { ascending: false })
     if (error) throw error
     patients = data || []
     renderLists()
-    const loading = document.querySelector('#listContent .loading')
-    if (loading) loading.remove()
+    document.querySelector('.loading')?.remove()
   } catch (err) {
-    console.error("ERREUR SUPABASE:", err)
-    const content = document.getElementById('listContent')
-    content.innerHTML = `<div class="error">
-      <strong>Connexion échouée :</strong><br>${err.message}<br><br>
-      Vérifiez :<br>
-      • Table <code>patients</code> existe ?<br>
-      • Colonnes <code>blessures jsonb</code>, <code>examens jsonb</code>, etc. ?<br>
-      • RLS activé + policies pour <code>anon</code> ?<br>
-      • Clé API valide ?
-    </div>`
+    document.getElementById('listContent').innerHTML = `<div class="error">Connexion échouée: ${err.message}</div>`
   }
 }
 
 function renderLists(filter = "") {
-  const filtered = patients.filter(p => (p.patientName || '').toLowerCase().includes(filter.toLowerCase()))
+  const filtered = patients.filter(p => (p.patientNameId || '').toLowerCase().includes(filter.toLowerCase()))
   renderSidebar(filtered)
   renderMain(filtered)
 }
@@ -202,8 +149,7 @@ function renderSidebar(data) {
   const el = document.getElementById('patientList')
   el.innerHTML = data.map(p => `
     <div class="patient-item" onclick="openDossier(${p.id})">
-      <div><strong>${p.patientName || 'Inconnu'}</strong><div class="muted">${p.profession || '—'} | ${p.totalCost || 0}$</div></div>
-      <button class="ghost" onclick="event.stopPropagation(); openDossier(${p.id})">Ouvrir</button>
+      <div><strong>${p.patientNameId}</strong><div class="muted">${p.profession || '—'} | ${p.totalCost || 0}$</div></div>
     </div>`).join('')
 }
 
@@ -211,9 +157,8 @@ function renderMain(data) {
   const el = document.getElementById('listContent')
   el.innerHTML = data.length ? data.map(p => `
     <div class="patient-item" onclick="openDossier(${p.id})">
-      <div><strong>${p.patientName || 'Inconnu'}</strong><div class="muted">${p.dob || 'N/A'} • ${p.profession || 'N/A'} • Total: ${p.totalCost || 0}$</div></div>
-      <button class="ghost" onclick="event.stopPropagation(); openDossier(${p.id})">Dossier</button>
-    </div>`).join('') : '<div class="muted">Aucun patient trouvé.</div>'
+      <div><strong>${p.patientNameId}</strong><div class="muted">${p.dob || 'N/A'} • ${p.profession || 'N/A'} • Total: ${p.totalCost || 0}$</div></div>
+    </div>`).join('') : '<div class="muted">Aucun patient</div>'
 }
 
 window.openDossier = (id) => {
@@ -225,118 +170,144 @@ window.openDossier = (id) => {
 
 function renderDossier() {
   const c = current
-  const b = (c.blessures || []).map(x => `- ${x.desc || ''} (${x.type}, x${x.qty}) = ${x.total}$`).join('\n')
-  const e = (c.examens || []).map(x => `- ${x.type} (x${x.qty}) = ${x.total}$`).join('\n')
-  const a = (c.accessoires || []).map(x => `- ${x.desc || ''} (x${x.qty}) = ${x.total}$`).join('\n')
-  const ch = c.chambreQty > 0 ? `- Chambre privée (x${c.chambreQty}) = ${c.chambreCost || 0}$` : ''
+  const recap = c.invoiceRecap ? ` (${c.invoiceRecap})` : ''
   document.getElementById('rapportContent').textContent = `
-SAMS: ${c.samsName || ''}
-Patient: ${c.patientName || ''}
-Naissance: ${c.dob || ''}
-Profession: ${c.profession || ''}
-Raison:
-${c.raison || '—'}
-
-Blessures:
-${b || 'Aucune'}
-
-Examens:
-${e || 'Aucune'}
-
-Accessoires:
-${a || 'Aucun'}
-
-Chambre:
-${ch || 'Aucune'}
-
-COÛT TOTAL: ${c.totalCost || 0}$`.trim()
+Prénom Nom du SAMS : ${c.samsName || ''}
+Prénom Nom ID du patient : ${c.patientNameId || ''}
+Date de naissance : ${c.dob || ''}
+Profession : ${c.profession || ''}
+Antécédents médicaux (les 2 derniers) : ${c.antecedents || ''}
+Récapitulatif des blessures : ${c.blessures || ''}
+Récapitulatif de la raison de l’hospitalisation : ${c.raison || ''}
+Examens (DÉTAILLER LES OP) : ${c.examens || ''}
+Coût total (en $) : ${c.totalCost || 0} $${recap}`.trim()
 }
 
-function calcCost(p) {
-  let total = 0
-  p.blessures = p.blessures || []
-  p.blessures.forEach(b => { b.total = b.qty * ({légère:1000,moyenne:2500,grave:3000}[b.type] || 0); total += b.total })
-  p.examens = p.examens || []
-  p.examens.forEach(e => { e.total = e.qty * 500; total += e.total })
-  p.accessoires = p.accessoires || []
-  p.accessoires.forEach(a => { a.total = a.qty * 2000; total += a.total })
-  p.chambreQty = parseInt(p.chambreQty) || 0
-  p.chambreCost = p.chambreQty * 10000
-  total += p.chambreCost
-  p.totalCost = total
-  return p
-}
+// === MENU CONTEXTUEL ===
+const contextMenu = document.getElementById('contextMenu')
+const addInvoiceBtn = document.getElementById('addInvoiceBtn')
 
-document.getElementById('patientForm').onsubmit = async e => {
+window.showContextMenu = (e) => {
   e.preventDefault()
-  const err = document.getElementById('formError')
-  err.style.display = 'none'
+  contextMenu.style.display = 'block'
+  contextMenu.style.left = e.pageX + 'px'
+  contextMenu.style.top = e.pageY + 'px'
+}
+
+document.addEventListener('click', () => contextMenu.style.display = 'none')
+
+addInvoiceBtn.onclick = () => {
+  contextMenu.style.display = 'none'
+  showInvoiceModal()
+}
+
+// === MODAL FACTURE ===
+let invoiceItems = []
+
+function showInvoiceModal() {
+  const modal = document.createElement('div')
+  modal.style.cssText = `position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:1000`
+  modal.innerHTML = `
+    <div class="card" style="width:500px;max-height:80vh;overflow:auto">
+      <h3>Ajouter une facture</h3>
+      <div id="invoiceList"></div>
+      <div class="row" style="margin-top:10px">
+        <select id="itemType">
+          <option value="blessure_légère">Blessure légère (1000$)</option>
+          <option value="blessure_moyenne">Blessure moyenne (2500$)</option>
+          <option value="blessure_grave">Blessure grave (3000$)</option>
+          <option value="IRM">IRM (500$)</option>
+          <option value="Radio">Radio (500$)</option>
+          <option value="Échographie">Échographie (500$)</option>
+          <option value="accessoire">Accessoire (2000$)</option>
+          <option value="chambre">Chambre privée (10000$)</option>
+        </select>
+        <input type="number" id="itemQty" value="1" min="1" style="width:80px">
+        <button class="ghost" onclick="addInvoiceItem()">Ajouter</button>
+      </div>
+      <div class="actions" style="margin-top:16px">
+        <button class="primary" onclick="saveInvoice()">Enregistrer facture</button>
+        <button class="ghost" onclick="this.closest('[style*=fixed]').remove()">Annuler</button>
+      </div>
+    </div>`
+  document.body.appendChild(modal)
+  updateInvoiceList()
+}
+
+window.addInvoiceItem = () => {
+  const type = document.getElementById('itemType').value
+  const qty = parseInt(document.getElementById('itemQty').value) || 1
+  const labels = {
+    blessure_légère: "Blessure légère", blessure_moyenne: "Blessure moyenne", blessure_grave: "Blessure grave",
+    IRM: "IRM", Radio: "Radio", Échographie: "Échographie", accessoire: "Accessoire", chambre: "Chambre privée"
+  }
+  const costs = { blessure_légère:1000, blessure_moyenne:2500, blessure_grave:3000, IRM:500, Radio:500, Échographie:500, accessoire:2000, chambre:10000 }
+  invoiceItems.push({ type, label: labels[type], qty, cost: costs[type] * qty })
+  updateInvoiceList()
+  document.getElementById('itemQty').value = 1
+}
+
+function updateInvoiceList() {
+  const list = document.getElementById('invoiceList')
+  list.innerHTML = invoiceItems.map((item, i) => `
+    <div class="invoice-item">
+      <span>${item.label} x${item.qty}</span>
+      <span>${item.cost}$</span>
+      <button class="ghost" style="color:red" onclick="invoiceItems.splice(${i},1); updateInvoiceList()">Suppr</button>
+    </div>`).join('') || '<div class="muted">Aucun élément</div>'
+}
+
+window.saveInvoice = async () => {
+  if (invoiceItems.length === 0) return alert("Ajoutez au moins un élément")
+  const total = invoiceItems.reduce((s, i) => s + i.cost, 0)
+  const recap = invoiceItems.map(i => `${i.qty}x ${i.label}`).join(', ')
+  current.totalCost = (current.totalCost || 0) + total
+  current.invoiceRecap = recap
+
   try {
-    const p = calcCost({
-      samsName: document.getElementById('samsName').value.trim(),
-      patientName: document.getElementById('patientName').value.trim(),
-      dob: document.getElementById('dob').value,
-      profession: document.getElementById('profession').value.trim(),
-      raison: document.getElementById('raison').value.trim(),
-      blessures: getItems('blessuresList', true),
-      examens: getItems('examensList', false),
-      accessoires: getItems('accessoiresList', true),
-      chambreQty: parseInt(document.getElementById('chambreQty').value) || 0
-    })
-    if (!p.samsName || !p.patientName) throw new Error("SAMS et Patient requis")
-
-    current
-      ? await supabase.from('patients').update(p).eq('id', current.id)
-      : await supabase.from('patients').insert([p])
-
+    await supabase.from('patients').update({
+      totalCost: current.totalCost,
+      invoiceRecap: current.invoiceRecap
+    }).eq('id', current.id)
     await loadPatients()
-    alert("Enregistré !")
-    clearForm()
-    show('list')
-  } catch (er) {
-    err.textContent = "Erreur: " + er.message
-    err.style.display = 'block'
+    renderDossier()
+    document.querySelector('[style*=fixed]')?.remove()
+  } catch (err) {
+    alert("Erreur: " + err.message)
   }
 }
 
-function getItems(id, hasDesc) {
-  return Array.from(document.getElementById(id).children).map(div => {
-    const spans = div.querySelectorAll('span')
-    return hasDesc
-      ? { desc: spans[0].textContent, type: spans[1].textContent, qty: +spans[2].textContent }
-      : { type: spans[0].textContent, qty: +spans[1].textContent }
-  })
+// === FORMULAIRE ===
+document.getElementById('patientForm').onsubmit = async e => {
+  e.preventDefault()
+  const p = {
+    samsName: document.getElementById('samsName').value.trim(),
+    patientNameId: document.getElementById('patientNameId').value.trim(),
+    dob: document.getElementById('dob').value,
+    profession: document.getElementById('profession').value.trim(),
+    antecedents: document.getElementById('antecedents').value.trim(),
+    blessures: document.getElementById('blessures').value.trim(),
+    raison: document.getElementById('raison').value.trim(),
+    examens: document.getElementById('examens').value.trim(),
+    totalCost: 0,
+    invoiceRecap: ''
+  }
+  try {
+    current
+      ? await supabase.from('patients').update(p).eq('id', current.id)
+      : await supabase.from('patients').insert([p])
+    await loadPatients()
+    alert("Patient enregistré")
+    clearForm()
+    show('list')
+  } catch (err) {
+    document.getElementById('formError').textContent = err.message
+    document.getElementById('formError').style.display = 'block'
+  }
 }
 
-function addItem(listId, hasDesc, descId, typeId, qtyId) {
-  const list = document.getElementById(listId)
-  const desc = descId ? document.getElementById(descId).value.trim() : ''
-  const type = typeId ? document.getElementById(typeId).value : ''
-  const qty = parseInt(document.getElementById(qtyId).value) || 1
-  if (hasDesc && !desc) return alert("Description requise")
-
-  const div = document.createElement('div')
-  div.className = 'invoice-item'
-  div.innerHTML = hasDesc
-    ? `<span>${desc}</span><span>${type}</span><span>${qty}</span>`
-    : `<span>${type}</span><span>${qty}</span>`
-  div.innerHTML += ` <button type="button" class="ghost" style="font-size:12px">Suppr</button>`
-  div.querySelector('button').onclick = () => div.remove()
-  list.appendChild(div)
-
-  if (descId) document.getElementById(descId).value = ''
-  document.getElementById(qtyId).value = 1
-}
-
-document.getElementById('addBlessure').onclick = () => addItem('blessuresList', true, 'blessureDesc', 'blessureType', 'blessureQty')
-document.getElementById('addExamen').onclick = () => addItem('examensList', false, null, 'examenType', 'examenQty')
-document.getElementById('addAccessoire').onclick = () => addItem('accessoiresList', true, 'accessoireDesc', null, 'accessoireQty')
-
-document.getElementById('clearForm').onclick = clearForm
 function clearForm() {
   document.getElementById('patientForm').reset()
-  ;['blessuresList','examensList','accessoiresList'].forEach(id => document.getElementById(id).innerHTML = '')
-  document.getElementById('chambreQty').value = 0
   current = null
   document.getElementById('formTitle').textContent = 'Nouveau patient'
 }
@@ -346,37 +317,20 @@ document.getElementById('editPatient').onclick = () => {
   show('new')
   document.getElementById('formTitle').textContent = 'Modifier patient'
   document.getElementById('samsName').value = current.samsName || ''
-  document.getElementById('patientName').value = current.patientName || ''
+  document.getElementById('patientNameId').value = current.patientNameId || ''
   document.getElementById('dob').value = current.dob || ''
   document.getElementById('profession').value = current.profession || ''
+  document.getElementById('antecedents').value = current.antecedents || ''
+  document.getElementById('blessures').value = current.blessures || ''
   document.getElementById('raison').value = current.raison || ''
-  document.getElementById('chambreQty').value = current.chambreQty || 0
-  ;[['blessures', true], ['examens', false], ['accessoires', true]].forEach(([key, hasDesc]) => {
-    const list = document.getElementById(key + 'List')
-    list.innerHTML = ''
-    ;(current[key] || []).forEach(item => {
-      const div = document.createElement('div')
-      div.className = 'invoice-item'
-      div.innerHTML = hasDesc
-        ? `<span>${item.desc || ''}</span><span>${item.type}</span><span>${item.qty}</span>`
-        : `<span>${item.type}</span><span>${item.qty}</span>`
-      div.innerHTML += ` <button type="button" class="ghost" style="font-size:12px">Suppr</button>`
-      div.querySelector('button').onclick = () => div.remove()
-      list.appendChild(div)
-    })
-  })
+  document.getElementById('examens').value = current.examens || ''
 }
 
 document.getElementById('deletePatient').onclick = async () => {
   if (!current || !confirm("Supprimer ?")) return
-  try {
-    const { error } = await supabase.from('patients').delete().eq('id', current.id)
-    if (error) throw error
-    await loadPatients()
-    show('list')
-  } catch (er) {
-    alert("Erreur suppression: " + er.message)
-  }
+  await supabase.from('patients').delete().eq('id', current.id)
+  await loadPatients()
+  show('list')
 }
 
 document.getElementById('printReport').onclick = () => window.print()
@@ -384,7 +338,6 @@ document.getElementById('searchPatient').oninput = e => renderLists(e.target.val
 document.getElementById('nav-list').onclick = () => show('list')
 document.getElementById('nav-new').onclick = () => { clearForm(); show('new') }
 
-// Démarrage
 loadPatients()
 </script>
 </body>
