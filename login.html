@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SAMS - Connexion</title>
+<style>
+:root{--primary:#e11d48;--bg:#f8f9fa;--card:#fff;--shadow:0 8px 25px rgba(0,0,0,0.1)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:Inter,system-ui;background:linear-gradient(135deg,#e11d48,#c2185b);color:#1f1f1f;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.card{background:var(--card);padding:40px 32px;border-radius:18px;box-shadow:var(--shadow);width:100%;max-width:400px;text-align:center}
+.logo{width:120px;height:120px;margin:0 auto 20px;border-radius:16px;box-shadow:0 4px 12px rgba(0,0,0,0.15)}
+h1{font-size:24px;margin-bottom:8px;color:#991b1b}
+p{color:#666;margin-bottom:24px;font-size:14px}
+input{width:100%;padding:14px;margin:10px 0;border:1.5px solid #ddd;border-radius:10px;font-size:15px;transition:0.2s}
+input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(225,29,72,0.15)}
+button{width:100%;padding:14px;background:var(--primary);color:white;border:none;border-radius:10px;font-weight:600;font-size:15px;cursor:pointer;transition:0.2s;margin-top:10px}
+button:hover{background:#991b1b}
+.error{color:#dc2626;background:#fee;border:1px solid #fecaca;padding:12px;border-radius:8px;margin:12px 0;font-size:14px;display:none}
+</style>
+</head>
+<body>
+<div class="card">
+  <img src="https://i.imgur.com/N1tQTgU.png" alt="SAMS" class="logo">
+  <h1>SAMS - Connexion</h1>
+  <p>Accès réservé au personnel</p>
+  
+  <input type="text" id="username" placeholder="Utilisateur" required>
+  <input type="password" id="password" placeholder="Mot de passe" required>
+  
+  <div id="error" class="error"></div>
+  
+  <button id="loginBtn">Se connecter</button>
+</div>
+
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+
+const SUPABASE_URL = "https://sevrfgivcpefyykuffti.supabase.co"
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNldnJmZ2l2Y3BlZnl5a3VmZnRpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI5NDI1NTMsImV4cCI6MjA3ODUxODU1M30.YZnkSHsVWKQEhfU7xYfWyTFmtkM28Zuzdu7Y1sjBXQc"
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY)
+
+document.getElementById('loginBtn').onclick = async () => {
+  const user = document.getElementById('username').value.trim()
+  const pass = document.getElementById('password').value
+  const errorEl = document.getElementById('error')
+
+  if (!user || !pass) {
+    errorEl.textContent = "Veuillez remplir tous les champs"
+    errorEl.style.display = 'block'
+    return
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('login')
+      .select('*')
+      .eq('user', user)
+      .single()
+
+    if (error || !data) throw new Error("Utilisateur introuvable")
+
+    if (data.password !== pass) throw new Error("Mot de passe incorrect")
+
+    // LOG : Connexion
+    await supabase.from('logs').insert({
+      user_id: data.id,
+      username: data.user,
+      action: 'login',
+      target: 'système',
+      details: `Connexion réussie`
+    })
+
+    localStorage.setItem('sams_user', JSON.stringify({
+      id: data.id,
+      user: data.user,
+      permission: data.permission
+    }))
+
+    window.location.href = 'index.html'
+
+  } catch (err) {
+    errorEl.textContent = err.message
+    errorEl.style.display = 'block'
+  }
+}
+</script>
+</body>
+</html>
