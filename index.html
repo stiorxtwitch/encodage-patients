@@ -36,9 +36,6 @@ button.danger{border-color:var(--danger);color:var(--danger)}
 .invoice-item button{padding:4px 8px;font-size:12px}
 .error{color:var(--danger);margin:10px 0;padding:10px;background:#fee;border:1px solid #fecaca;border-radius:6px}
 .loading{text-align:center;color:var(--muted);padding:20px}
-.context-menu{position:absolute;background:white;border:1px solid #ddd;border-radius:8px;padding:8px 0;box-shadow:0 4px 12px rgba(0,0,0,0.1);z-index:1000;display:none}
-.context-menu button{display:block;width:100%;text-align:left;padding:8px 16px;border:0;background:none;cursor:pointer}
-.context-menu button:hover{background:#f0f7ff}
 @media print{.grid{grid-template-columns:1fr}.card{box-shadow:none;border:none}}
 </style>
 </head>
@@ -58,11 +55,13 @@ button.danger{border-color:var(--danger);color:var(--danger)}
       <div id="patientList"></div>
     </aside>
     <main>
+      <!-- Liste -->
       <section id="view-list" class="card">
         <h2>Liste des patients</h2>
         <div id="listContent"><div class="loading">Connexion à Supabase...</div></div>
       </section>
 
+      <!-- Nouveau / Modifier -->
       <section id="view-new" class="card" style="display:none;">
         <h2 id="formTitle">Nouveau patient</h2>
         <form id="patientForm">
@@ -91,10 +90,12 @@ button.danger{border-color:var(--danger);color:var(--danger)}
         </form>
       </section>
 
+      <!-- Dossier patient -->
       <section id="view-dossier" class="card" style="display:none;">
         <h2>Dossier patient</h2>
-        <div id="rapportContent" class="report" oncontextmenu="showContextMenu(event)"></div>
+        <div id="rapportContent" class="report"></div>
         <div class="actions">
+          <button id="addInvoiceBtn" class="primary">Ajouter une facture</button>
           <button id="editPatient" class="ghost">Modifier</button>
           <button id="deletePatient" class="danger ghost">Supprimer</button>
           <button id="printReport" class="primary">Imprimer</button>
@@ -102,11 +103,6 @@ button.danger{border-color:var(--danger);color:var(--danger)}
       </section>
     </main>
   </div>
-</div>
-
-<!-- Menu contextuel -->
-<div id="contextMenu" class="context-menu">
-  <button id="addInvoiceBtn">Ajouter une facture</button>
 </div>
 
 <script type="module">
@@ -183,25 +179,9 @@ Examens (DÉTAILLER LES OP) : ${c.examens || ''}
 Coût total (en $) : ${c.totalCost || 0} $${recap}`.trim()
 }
 
-// === MENU CONTEXTUEL ===
-const contextMenu = document.getElementById('contextMenu')
-const addInvoiceBtn = document.getElementById('addInvoiceBtn')
+// === BOUTON AJOUTER FACTURE ===
+document.getElementById('addInvoiceBtn').onclick = showInvoiceModal
 
-window.showContextMenu = (e) => {
-  e.preventDefault()
-  contextMenu.style.display = 'block'
-  contextMenu.style.left = e.pageX + 'px'
-  contextMenu.style.top = e.pageY + 'px'
-}
-
-document.addEventListener('click', () => contextMenu.style.display = 'none')
-
-addInvoiceBtn.onclick = () => {
-  contextMenu.style.display = 'none'
-  showInvoiceModal()
-}
-
-// === MODAL FACTURE ===
 let invoiceItems = []
 
 function showInvoiceModal() {
@@ -222,7 +202,7 @@ function showInvoiceModal() {
           <option value="accessoire">Accessoire (2000$)</option>
           <option value="chambre">Chambre privée (10000$)</option>
         </select>
-        <input type="number" id="itemQty" value="1" min="0" style="width:80px">
+        <input type="number" id="itemQty" value="1" min="1" style="width:80px">
         <button class="ghost" onclick="addInvoiceItem()">Ajouter</button>
       </div>
       <div class="actions" style="margin-top:16px">
@@ -342,4 +322,3 @@ loadPatients()
 </script>
 </body>
 </html>
-
