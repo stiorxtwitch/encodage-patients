@@ -30,8 +30,9 @@ button.primary{background:var(--primary);color:white;padding:12px 18px;border:0;
 button.primary:hover{background:var(--primary-dark)}
 button.ghost{background:transparent;border:1.5px solid var(--border);padding:12px 18px;border-radius:10px;cursor:pointer;font-weight:500;transition:0.2s}
 button.ghost:hover{border-color:var(--primary);color:var(--primary);background:#fee2e2}
-.patient-item{padding:14px;border-radius:12px;border:1px solid var(--border);margin-bottom:10px;cursor:pointer;transition:0.2s}
+.patient-item{padding:14px;border-radius:12px;border:1px solid var(--border);margin-bottom:10px;cursor:pointer;transition:0.2s;display:flex;justify-content:space-between;align-items:center}
 .patient-item:hover{background:#fee2e2;border-color:var(--primary)}
+.patient-item div{display:flex;flex-direction:column}
 .muted{color:#6b7280;font-size:13px}
 .report{white-space:pre-wrap;background:#fffafa;padding:18px;border-radius:12px;border:1px solid var(--border);font-family:monospace;font-size:14px;line-height:1.8}
 .search-bar{margin:12px 0;padding:10px 14px;border-radius:10px;border:1px solid var(--border);font-size:14px}
@@ -83,6 +84,9 @@ button.ghost:hover{border-color:var(--primary);color:var(--primary);background:#
       <section id="view-dossier" class="card" style="display:none;">
         <h2>Dossier refus</h2>
         <div id="report" class="report"></div>
+        <div class="actions">
+          <button class="ghost" onclick="show('list')">Retour à la liste</button>
+        </div>
       </section>
     </main>
   </div>
@@ -95,75 +99,133 @@ const SUPABASE_URL = "https://sevrfgivcpefyykuffti.supabase.co"
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNldnJmZ2l2Y3BlZnl5a3VmZnRpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI5NDI1NTMsImV4cCI6MjA3ODUxODU1M30.YZnkSHsVWKQEhfU7xYfWyTFmtkM28Zuzdu7Y1sjBXQc"
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY)
 
-if (!localStorage.getItem('sams_user')) window.location.href = 'login.html'
+// Protection
+if (!localStorage.getItem('sams_user')) {
+  window.location.href = 'login.html'
+}
 const user = JSON.parse(localStorage.getItem('sams_user'))
 
-async function log(action, details) {
-  await supabase.from('logs').insert({ user_id: user.id, username: user.user, action, target: 'refus', details })
+// Logs
+async function logAction(action, details) {
+  await supabase.from('logs').insert({
+    user_id: user.id,
+    username: user.user,
+    action,
+    target: 'refus',
+    details
+  }).catch(() => {})
 }
 
 let items = [], current = null
-const views = { list: document.getElementById('view-list'), new: document.getElementById('view-new'), dossier: document.getElementById('view-dossier') }
+const views = {
+  list: document.getElementById('view-list'),
+  new: document.getElementById('view-new'),
+  dossier: document.getElementById('view-dossier')
+}
 
-function show(v) {
-  Object.values(views).forEach(x => x.style.display = 'none')
-  views[v].style.display = 'block'
+function show(view) {
+  Object.values(views).forEach(v => v.style.display = 'none')
+  views[view].style.display = 'block'
   document.querySelectorAll('.menu button').forEach(b => b.classList.remove('active'))
-  document.getElementById(`nav-${v}`).classList.add('active')
+  document.getElementById(`nav-${view}`).classList.add('active')
 }
 
+// Charger les données
 async function load() {
-  const { data, error } = await supabase.from('denied').select('*').order('id', { ascending: false })
-  if (error) return document.getElementById('listContent').innerHTML = `<div class="error">${error.message}</div>`
-  items = data
-  render()
+  try {
+    const { data, error } = await supabase.from('denied').select('*').order('id', { ascending: false })
+    if (error) throw error
+    items = data || []
+    render()
+    document.querySelector('.loading')?.remove()
+  } catch (err) {
+    document.getElementById('listContent').innerHTML = `<div class="error">Erreur: ${err.message}</div>`
+  }
 }
 
+// Affichage
 function render(filter = "") {
-  const f = items.filter(i => i.patientID.toLowerCase().includes(filter.toLowerCase()))
-  document.getElementById('list').innerHTML = f.map(i => `<div class="patient-item" onclick="open(${i.id})"><strong>${i.patientID}</strong><div class="muted">${new Date(i.date).toLocaleString('fr-FR')}</div></div>`).join('')
-  document.getElementById('listContent').innerHTML = f.length ? f.map(i => `<div class="patient-item" onclick="open(${i.id})"><strong>${i.patientID}</strong><div class="muted">${new Date(i.date).toLocaleString('fr-FR')} • ${i.raison.substring(0,30)}...</div></div>`).join('') : '<div class="muted">Aucun refus</div>'
+  const filtered = items.filter(i => (i.patientID || '').toLowerCase().includes(filter.toLowerCase()))
+  
+  document.getElementById('list').innerHTML = filtered.map(i => `
+    <div class="patient-item" onclick="openDossier(${i.id})">
+      <div>
+        <strong>${i.patientID}</strong>
+        <div class="muted">${new Date(i.date).toLocaleString('fr-FR')}</div>
+      </div>
+    </div>
+  `).join('')
+
+  document.getElementById('listContent').innerHTML = filtered.length ? filtered.map(i => `
+    <div class="patient-item" onclick="openDossier(${i.id})">
+      <div>
+        <strong>${i.patientID}</strong>
+        <div class="muted">
+          ${new Date(i.date).toLocaleString('fr-FR')} • 
+          ${i.raison.substring(0, 35)}${i.raison.length > 35 ? '...' : ''}
+        </div>
+      </div>
+    </div>
+  `).join('') : '<div class="muted">Aucun refus enregistré</div>'
 }
 
-window.open = (id) => {
+// Ouvrir dossier
+window.openDossier = (id) => {
   current = items.find(x => x.id === id)
-  document.getElementById('report').textContent = `Prénom Nom du SAMS : ${current.samsName}\nPrénom Nom ID du patient : ${current.patientID}\nDate et Heure de la prise en charge : ${new Date(current.date).toLocaleString('fr-FR')}\nRécapitulatif des blessures : ${current.recap}\nRaison du refus : ${current.raison}`
+  if (!current) return
+  document.getElementById('report').textContent = 
+`Prénom Nom du SAMS : ${current.samsName}
+Prénom Nom ID du patient : ${current.patientID}
+Date et Heure de la prise en charge : ${new Date(current.date).toLocaleString('fr-FR')}
+Récapitulatif des blessures : ${current.recap}
+Raison du refus : ${current.raison}`.trim()
   show('dossier')
 }
 
+// Soumission formulaire
 document.getElementById('form').onsubmit = async e => {
   e.preventDefault()
-  const p = {
+  const form = {
     samsName: document.getElementById('samsName').value.trim(),
     patientID: document.getElementById('patientID').value.trim(),
     date: document.getElementById('date').value,
     recap: document.getElementById('recap').value.trim(),
     raison: document.getElementById('raison').value.trim()
   }
+
   try {
     if (current) {
-      await supabase.from('denied').update(p).eq('id', current.id)
-      await log('update', `Refus ID: ${current.id}`)
+      await supabase.from('denied').update(form).eq('id', current.id)
+      await logAction('update', `Refus ID: ${current.id}`)
     } else {
-      const { data } = await supabase.from('denied').insert([p]).select()
-      await log('create', `Refus ID: ${data[0].id}`)
+      const { data } = await supabase.from('denied').insert([form]).select()
+      await logAction('create', `Refus ID: ${data[0].id}`)
     }
     current = null
     document.getElementById('form').reset()
     await load()
     show('list')
-    alert("Refus enregistré")
+    alert("Refus enregistré avec succès")
   } catch (err) {
     document.getElementById('formError').textContent = err.message
     document.getElementById('formError').style.display = 'block'
   }
 }
 
-document.getElementById('clear').onclick = () => { document.getElementById('form').reset(); current = null }
+// Boutons
+document.getElementById('clear').onclick = () => {
+  document.getElementById('form').reset()
+  current = null
+}
 document.getElementById('search').oninput = e => render(e.target.value)
 document.getElementById('nav-list').onclick = () => show('list')
-document.getElementById('nav-new').onclick = () => { current = null; document.getElementById('form').reset(); show('new') }
+document.getElementById('nav-new').onclick = () => {
+  current = null
+  document.getElementById('form').reset()
+  show('new')
+}
 
+// Démarrage
 load()
 </script>
 </body>
