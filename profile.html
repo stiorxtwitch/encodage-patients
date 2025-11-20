@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SAMS - Mon profil</title>
+<style>
+/* Même style que les autres pages */
+:root etc... */
+</style>
+</head>
+<body>
+<header>
+  <img src="https://i.imgur.com/N1tQTgU.png" alt="SAMS">
+  <h1>Mon profil</h1>
+  <a href="index.html" class="back-btn">Retour</a>
+</header>
+<div class="container">
+  <div class="card">
+    <h2>Profil de <span id="username"></span></h2>
+    <p>Permission: <span id="permission"></span></p>
+    <p>Temps total de service: <strong id="totalTime">0</strong> minutes</p>
+
+    <h3>Dernières interventions</h3>
+    <div id="logsList"></div>
+  </div>
+</div>
+
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+
+const SUPABASE_URL = "https://sevrfgivcpefyykuffti.supabase.co"
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNldnJmZ2l2Y3BlZnl5a3VmZnRpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI5NDI1NTMsImV4cCI6MjA3ODUxODU1M30.YZnkSHsVWKQEhfU7xYfWyTFmtkM28Zuzdu7Y1sjBXQc"
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY)
+
+if (!localStorage.getItem('sams_user')) window.location.href = 'login.html'
+const user = JSON.parse(localStorage.getItem('sams_user'))
+
+document.getElementById('username').textContent = user.user
+document.getElementById('permission').textContent = user.permission === 'admin' ? 'Administrateur' : 'Utilisateur'
+
+async function loadProfile() {
+  const { data: userData } = await supabase.from('login').select('servicetime').eq('id', user.id).single()
+  document.getElementById('totalTime').textContent = (userData.servicetime || 0) + ' minutes'
+
+  const { data: logs } = await supabase.from('logs').select('*').eq('user_id', user.id).order('created_at', { ascending: false }).limit(20)
+  const list = document.getElementById('logsList')
+  list.innerHTML = logs.map(l => `<div style="padding:8px 0;border-bottom:1px solid #eee">
+    ${new Date(l.created_at).toLocaleString('fr-FR')} — ${l.action} — ${l.details}
+  </div>`).join('')
+}
+
+loadProfile()
+</script>
+</body>
+</html>
