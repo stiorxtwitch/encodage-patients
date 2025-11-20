@@ -11,16 +11,16 @@ body::before{content:"";position:fixed;inset:0;background:rgba(255,255,255,0.68)
 header{background:linear-gradient(90deg,var(--primary),var(--primary-dark));color:white;padding:16px 24px;display:flex;align-items:center;justify-content:space-between;position:relative;z-index:10}
 header img{height:58px;border-radius:14px;box-shadow:0 3px 10px rgba(0,0,0,0.2)}
 h1{margin:0;font-size:20px;font-weight:700}
-.back-btn{background:#dc2626;color:white;padding:8px 16px;border-radius:8px;font-size:14px;cursor:pointer;border:none}
+.back-btn{background:#dc2626;color:white;padding:8px 16px;border-radius:8px;font-size:14px;cursor:pointer;border:none;transition:0.2s}
 .back-btn:hover{background:#b91c1c}
 .container{max-width:800px;margin:80px auto;padding:20px}
 .card{background:rgba(255,255,255,0.94);padding:40px;border-radius:16px;box-shadow:var(--shadow);text-align:center;border:1px solid var(--border);backdrop-filter:blur(12px)}
 button.primary{background:var(--primary);color:white;padding:16px 36px;border:none;border-radius:12px;font-size:19px;cursor:pointer;margin:15px;font-weight:600;transition:0.2s}
 button.primary:hover{background:var(--primary-dark)}
-#timer{font-size:52px;font-weight:bold;margin:20px 0;color:var(--primary-dark);font-family:monospace}
-#recapForm{margin-top:40px;padding:20px;background:#f9f9f9;border-radius:12px}
+#timer{font-size:56px;font-weight:bold;margin:30px 0;color:var(--primary-dark);font-family:monospace}
+#recapForm{margin-top:40px;padding:20px;background:#f9f9f9;border-radius:12px;display:none}
 .item{display:flex;justify-content:space-between;align-items:center;background:white;padding:12px;border-radius:8px;margin:8px 0;box-shadow:0 2px 6px rgba(0,0,0,0.05)}
-.item button{color:var(--danger);background:none;border:none;cursor:pointer;font-size:18px}
+.item button{color:var(--danger);background:none;border:none;cursor:pointer;font-size:20px}
 </style>
 </head>
 <body>
@@ -37,7 +37,7 @@ button.primary:hover{background:var(--primary-dark)}
     
     <button class="primary" id="startBtn">Prise de service</button>
 
-    <div id="recapForm" style="display:none">
+    <div id="recapForm">
       <h3 style="color:var(--primary)">Récapitulatif des interventions</h3>
       <div id="itemsList"><div class="muted">Aucune intervention</div></div>
       
@@ -56,7 +56,7 @@ button.primary:hover{background:var(--primary-dark)}
         <button class="ghost" onclick="addItem()">Ajouter</button>
       </div>
 
-      <button class="primary" onclick="endShift()" style="background:#16a34a">Fin de service</button>
+      <button class="primary" onclick="endShift()" style="background:#16a34a;margin-top:30px">Fin de service</button>
     </div>
   </div>
 </div>
@@ -68,27 +68,29 @@ const supabase = createClient("https://sevrfgivcpefyykuffti.supabase.co", "eyJhb
 if (!localStorage.getItem('sams_user')) window.location.href = 'login.html'
 const user = JSON.parse(localStorage.getItem('sams_user'))
 
+// Récupération persistante
 let items = JSON.parse(localStorage.getItem('current_shift_items') || '[]')
-const startTime = localStorage.getItem('shift_start_time')
+let startTime = localStorage.getItem('shift_start_time')
+
 let timerInterval = null
 
-// Persistance du timer
 function updateTimer() {
   if (!startTime) return
   const elapsed = Math.floor((Date.now() - new Date(startTime)) / 1000)
-  const h = String(Math.floor(elapsed / 3600)).padStart(2,'0')
-  const m = String(Math.floor((elapsed % 3600)/60)).padStart(2,'0')
-  const s = String(elapsed % 60).padStart(2,'0')
+  const h = String(Math.floor(elapsed / 3600)).padStart(2, '0')
+  const m = String(Math.floor((elapsed % 3600) / 60)).padStart(2, '0')
+  const s = String(elapsed % 60).padStart(2, '0')
   document.getElementById('timer').textContent = `${h}:${m}:${s}`
 }
+
 function startTimer() {
   timerInterval = setInterval(updateTimer, 500)
   updateTimer()
 }
 
-// Au chargement
+// Au chargement de la page
 if (startTime) {
-  document.getElementById('statusText').textContent = "Service en cours..."
+  document.getElementById('statusText').textContent = "Service en cours depuis " + new Date(startTime).toLocaleTimeString('fr-FR')
   document.getElementById('startBtn').style.display = 'none'
   document.getElementById('recapForm').style.display = 'block'
   renderItems()
@@ -96,41 +98,41 @@ if (startTime) {
 }
 
 document.getElementById('startBtn').onclick = () => {
-  localStorage.setItem('shift_start_time', new Date().toISOString())
+  startTime = new Date().toISOString()
+  localStorage.setItem('shift_start_time', startTime)
   localStorage.setItem('current_shift_items', '[]')
+  items = []
   location.reload()
 }
 
 window.addItem = () => {
   const type = document.getElementById('itemType').value
-  const qty = parseInt(document.getElementById('itemQty').value) || 1
-  items.push({type, qty})
+  const qty = parseInt(document.getItemById('itemQty').value) || 1
+  items.push({ type, qty })
   localStorage.setItem('current_shift_items', JSON.stringify(items))
   renderItems()
 }
 
 function renderItems() {
   const list = document.getElementById('itemsList')
-  if (items.length === 0) {
-    list.innerHTML = '<div class="muted">Aucune intervention</div>'
-    return
-  }
-  list.innerHTML = items.map((it, i) => `
+  list.innerHTML = items.length ? items.map((it, i) => `
     <div class="item">
       <span>${it.qty}x ${it.type}</span>
       <button onclick="items.splice(${i},1); localStorage.setItem('current_shift_items', JSON.stringify(items)); renderItems()">×</button>
     </div>
-  `).join('')
+  `).join('') : '<div class="muted">Aucune intervention</div>'
 }
 
 window.endShift = async () => {
-  if (!confirm("Terminer ton service ?")) return
+  if (!startTime) return
   
   const endTime = new Date()
   const duration = Math.floor((endTime - new Date(startTime)) / 60000)
 
   const recap = {}
   items.forEach(i => recap[i.type] = (recap[i.type] || 0) + i.qty)
+
+  if (!confirm(`Terminer le service ?\nDurée: ${duration} minutes\nInterventions: ${JSON.stringify(recap)}`)) return
 
   try {
     await supabase.from('shifts').insert({
@@ -148,21 +150,22 @@ window.endShift = async () => {
       user_id: user.id,
       username: user.user,
       action: 'clock_out',
-      target: 'service',
-      details: `Durée: ${duration} min | ${JSON.stringify(recap)}`
+      details: `Durée: ${duration} min | Interventions: ${JSON.stringify(recap)}`
     })
 
-    // Nettoyage complet
     localStorage.removeItem('shift_start_time')
     localStorage.removeItem('current_shift_items')
     clearInterval(timerInterval)
-    alert(`Service terminé ! Temps total: ${duration} minutes`)
+    alert(`Service terminé ! ${duration} minutes ajoutées à ton temps total`)
     location.reload()
-  } catch (e) { alert("Erreur: " + e.message) }
+  } catch (e) {
+    alert("Erreur: " + e.message)
+  }
 }
 
-renderItems()
+// Démarrage auto si déjà en service
 startTimer()
+renderItems()
 </script>
 </body>
 </html>
