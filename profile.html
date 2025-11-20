@@ -5,8 +5,22 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>SAMS - Mon profil</title>
 <style>
-/* Même style que les autres pages */
-:root etc... */
+:root{--primary:#e11d48;--primary-light:#fee2e2;--primary-dark:#991b1b;--border:#fecaca;--shadow:0 6px 18px rgba(225,29,72,0.08)}
+body{font-family:Inter,system-ui;margin:0;background:url('https://i.imgur.com/A6V1lhN.jpg') no-repeat center center fixed;background-size:cover;color:#1f1f1f;min-height:100vh}
+body::before{content:"";position:fixed;inset:0;background:rgba(255,255,255,0.68);backdrop-filter:blur(4px);z-index:-1}
+header{background:linear-gradient(90deg,var(--primary),var(--primary-dark));color:white;padding:16px 24px;display:flex;align-items:center;justify-content:space-between;position:relative;z-index:10}
+header img{height:58px;border-radius:14px;box-shadow:0 3px 10px rgba(0,0,0,0.2)}
+h1{margin:0;font-size:20px;font-weight:700}
+.back-btn{background:#dc2626;color:white;padding:8px 16px;border-radius:8px;font-size:14px;cursor:pointer;border:none}
+.back-btn:hover{background:#b91c1c}
+.container{max-width:1000px;margin:40px auto;padding:20px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+@media (max-width:768px){.grid{grid-template-columns:1fr}}
+.card{background:rgba(255,255,255,0.92);padding:28px;border-radius:14px;box-shadow:var(--shadow);border:1px solid var(--border);backdrop-filter:blur(10px)}
+h2{color:var(--primary-dark);margin-top:0}
+.big-number{font-size:42px;font-weight:800;color:var(--primary);margin:10px 0}
+.log-item{padding:14px;background:#f9f9f9;border-radius:10px;margin:10px 0;border-left:4px solid var(--primary)}
+.muted{color:#6b7280;font-size:14px}
 </style>
 </head>
 <body>
@@ -15,39 +29,57 @@
   <h1>Mon profil</h1>
   <a href="index.html" class="back-btn">Retour</a>
 </header>
-<div class="container">
-  <div class="card">
-    <h2>Profil de <span id="username"></span></h2>
-    <p>Permission: <span id="permission"></span></p>
-    <p>Temps total de service: <strong id="totalTime">0</strong> minutes</p>
 
-    <h3>Dernières interventions</h3>
-    <div id="logsList"></div>
+<div class="container">
+  <div class="grid">
+    <div class="card">
+      <h2>Bienvenue</h2>
+      <h1 style="margin:10px 0;font-size:28px" id="username"></h1>
+      <p>Grade : <strong id="permission">Membre</strong></p>
+      
+      <h2 style="margin-top:30px">Temps total de service</h2>
+      <div class="big-number" id="totalTime">0 min</div>
+      <p class="muted">Cumulé sur toute ta carrière SAMS</p>
+    </div>
+
+    <div class="card">
+      <h2>Dernières actions</h2>
+      <div id="logsList">
+        <div class="muted" style="text-align:center;padding:20px">Chargement...</div>
+      </div>
+    </div>
   </div>
 </div>
 
 <script type="module">
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
-
-const SUPABASE_URL = "https://sevrfgivcpefyykuffti.supabase.co"
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNldnJmZ2l2Y3BlZnl5a3VmZnRpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI5NDI1NTMsImV4cCI6MjA3ODUxODU1M30.YZnkSHsVWKQEhfU7xYfWyTFmtkM28Zuzdu7Y1sjBXQc"
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY)
+const supabase = createClient("https://sevrfgivcpefyykuffti.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNldnJmZ2l2Y3BlZnl5a3VmZnRpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI5NDI1NTMsImV4cCI6MjA3ODUxODU1M30.YZnkSHsVWKQEhfU7xYfWyTFmtkM28Zuzdu7Y1sjBXQc")
 
 if (!localStorage.getItem('sams_user')) window.location.href = 'login.html'
 const user = JSON.parse(localStorage.getItem('sams_user'))
 
 document.getElementById('username').textContent = user.user
-document.getElementById('permission').textContent = user.permission === 'admin' ? 'Administrateur' : 'Utilisateur'
+document.getElementById('permission').textContent = user.permission === 'admin' ? 'Administrateur' : 'Ambulancier'
 
 async function loadProfile() {
-  const { data: userData } = await supabase.from('login').select('servicetime').eq('id', user.id).single()
-  document.getElementById('totalTime').textContent = (userData.servicetime || 0) + ' minutes'
+  const { data: u } = await supabase.from('login').select('servicetime').eq('id', user.id).single()
+  const minutes = u?.servicetime || 0
+  const hours = Math.floor(minutes / 60)
+  const mins = minutes % 60
+  document.getElementById('totalTime').textContent = `${hours}h ${mins}min`
 
-  const { data: logs } = await supabase.from('logs').select('*').eq('user_id', user.id).order('created_at', { ascending: false }).limit(20)
-  const list = document.getElementById('logsList')
-  list.innerHTML = logs.map(l => `<div style="padding:8px 0;border-bottom:1px solid #eee">
-    ${new Date(l.created_at).toLocaleString('fr-FR')} — ${l.action} — ${l.details}
-  </div>`).join('')
+  const { data: logs } = await supabase.from('logs')
+    .select('*')
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false })
+    .limit(15)
+
+  document.getElementById('logsList').innerHTML = logs.length ? logs.map(l => `
+    <div class="log-item">
+      <strong>${new Date(l.created_at).toLocaleString('fr-FR')}</strong><br>
+      <span style="color:var(--primary)">${l.action}</span> → ${l.details || l.target}
+    </div>
+  `).join('') : '<div class="muted">Aucune activité récente</div>'
 }
 
 loadProfile()
