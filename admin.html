@@ -3,35 +3,56 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>SAMS - Admin Logs</title>
+<title>SAMS - Admin Panel</title>
 <style>
-:root{--primary:#1e40af;--danger:#dc2626;--bg:#f8f9fa}
-body{font-family:system-ui;margin:0;background:var(--bg);color:#1f1f1f}
-header{background:var(--primary);color:white;padding:16px 24px;display:flex;align-items:center;gap:16px;position:relative}
-header img{height:50px;border-radius:10px}
-h1{margin:0;font-size:20px}
-.back-btn{position:absolute;right:24px;color:white;text-decoration:none;font-size:14px}
-.container{max-width:1100px;margin:32px auto;padding:16px}
-.card{background:white;padding:24px;border-radius:14px;box-shadow:0 4px 12px rgba(0,0,0,0.08)}
+:root{--primary:#e11d48;--primary-dark:#991b1b;--border:#fecaca;--shadow:0 6px 18px rgba(225,29,72,0.08);--danger:#dc2626;--success:#16a34a}
+body{font-family:Inter,system-ui;margin:0;background:url('https://i.imgur.com/A6V1lhN.jpg') no-repeat center center fixed;background-size:cover;color:#1f1f1f;min-height:100vh}
+body::before{content:"";position:fixed;inset:0;background:rgba(255,255,255,0.68);backdrop-filter:blur(4px);z-index:-1}
+header{background:linear-gradient(90deg,var(--primary),var(--primary-dark));color:white;padding:16px 24px;display:flex;align-items:center;justify-content:space-between;position:relative;z-index:10}
+header img{height:58px;border-radius:14px;box-shadow:0 3px 10px rgba(0,0,0,0.2)}
+h1{margin:0;font-size:20px;font-weight:700}
+.back-btn{background:#dc2626;color:white;padding:8px 16px;border-radius:8px;font-size:14px;cursor:pointer;border:none;transition:0.2s}
+.back-btn:hover{background:#b91c1c}
+.container{max-width:1100px;margin:40px auto;padding:20px}
+.card{background:rgba(255,255,255,0.94);padding:32px;border-radius:16px;box-shadow:var(--shadow);border:1px solid var(--border);backdrop-filter:blur(12px);margin-bottom:32px}
+h2{color:var(--primary-dark);margin-top:0}
 table{width:100%;border-collapse:collapse;margin-top:16px}
-th,td{padding:12px 8px;border-bottom:1px solid #eee;text-align:left;font-size:14px}
-th{background:#f1f5f9;font-weight:600}
-.action-create{color:#16a34a}
+th,td{padding:12px 10px;border-bottom:1px solid #eee;text-align:left;font-size:14px}
+th{background:#fff5f5;font-weight:600;color:var(--primary-dark)}
+.action-create{color:var(--success)}
 .action-update{color:#ea580c}
-.action-delete{color:var(--danger)}
+.action-delete,.action-reset_servicetime{color:var(--danger)}
 .action-login{color:#2563eb}
 .action-invoice{color:#7c3aed}
+.action-clock_out{color:#7c3aed}
+.btn-danger{background:var(--danger);color:white;padding:10px 20px;border:none;border-radius:8px;cursor:pointer;font-weight:600}
+.btn-danger:hover{background:#b91c1c}
 </style>
 </head>
 <body>
 <header>
   <img src="https://i.imgur.com/N1tQTgU.png" alt="SAMS">
-  <h1>SAMS - Journal d'activité</h1>
-  <a href="index.html" class="back-btn">Retour à la gestion</a>
+  <h1>SAMS - Admin Panel</h1>
+  <a href="index.html" class="back-btn">Retour</a>
 </header>
+
 <div class="container">
+
+  <!-- SECTION TEMPS DE SERVICE -->
   <div class="card">
-    <h2>Logs système (dernières 100 actions)</h2>
+    <h2>Temps de service des utilisateurs</h2>
+    <button onclick="resetAllTimes()" class="btn-danger">Réinitialiser tous les temps de service</button>
+    <table id="timeTable">
+      <thead>
+        <tr><th>Utilisateur</th><th>Temps total</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <!-- SECTION JOURNAL D'ACTIVITÉ -->
+  <div class="card">
+    <h2>Journal d’activité (100 dernières actions)</h2>
     <table id="logsTable">
       <thead>
         <tr>
@@ -45,33 +66,81 @@ th{background:#f1f5f9;font-weight:600}
       <tbody></tbody>
     </table>
   </div>
+
 </div>
 
 <script type="module">
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
-
-const SUPABASE_URL = "https://sevrfgivcpefyykuffti.supabase.co"
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNldnJmZ2l2Y3BlZnl5a3VmZnRpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI5NDI1NTMsImV4cCI6MjA3ODUxODU1M30.YZnkSHsVWKQEhfU7xYfWyTFmtkM28Zuzdu7Y1sjBXQc"
-
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY)
+const supabase = createClient("https://sevrfgivcpefyykuffti.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNldnJmZ2l2Y3BlZnl5a3VmZnRpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI5NDI1NTMsImV4cCI6MjA3ODUxODU1M30.YZnkSHsVWKQEhfU7xYfWyTFmtkM28Zuzdu7Y1sjBXQc")
 
 const user = JSON.parse(localStorage.getItem('sams_user') || '{}')
 if (!user || user.permission !== 'admin') {
-  alert("Accès refusé")
+  alert("Accès refusé - Admin uniquement")
   window.location.href = 'login.html'
 }
 
+// CHARGEMENT DES TEMPS DE SERVICE
+async function loadServiceTimes() {
+  const { data } = await supabase.from('login').select('user,servicetime').order('user', { ascending: true })
+  const tbody = document.querySelector('#timeTable tbody')
+  tbody.innerHTML = data.map(u => {
+    const hours = Math.floor((u.servicetime || 0) / 60)
+    const mins = (u.servicetime || 0) % 60
+    return `<tr><td><strong>${u.user}</strong></td><td>${hours}h ${mins}min</td></tr>`
+  }).join('')
+}
+
+// RÉINITIALISATION DES TEMPS
+window.resetAllTimes = async () => {
+  const reason = prompt("⚠️ ÊTES-VOUS SÛR ?\n\nCette action va réinitialiser le temps de service de TOUS les utilisateurs à 0.\n\nRaison obligatoire (sera enregistrée dans les logs) :")
+  if (!reason || reason.trim() === "") return alert("Raison obligatoire !")
+
+  if (!confirm("Confirmez la réinitialisation totale ?")) return
+
+  try {
+    await supabase.from('login').update({ servicetime: 0 })
+    await supabase.from('logs').insert({
+      user_id: user.id,
+      username: user.user,
+      action: 'reset_servicetime',
+      target: 'tous_les_utilisateurs',
+      details: `Raison: ${reason.trim()}`
+    })
+    alert("Tous les temps de service ont été réinitialisés à 0")
+    loadServiceTimes()
+  } catch (e) {
+    alert("Erreur: " + e.message)
+  }
+}
+
+// CHARGEMENT DES LOGS
 async function loadLogs() {
   const { data } = await supabase.from('logs').select('*').order('created_at', { ascending: false }).limit(100)
   const tbody = document.querySelector('#logsTable tbody')
   tbody.innerHTML = data.map(log => {
     const date = new Date(log.created_at).toLocaleString('fr-FR')
     const actionClass = `action-${log.action}`
-    const actionLabel = { login: 'Connexion', create: 'Création', update: 'Modification', delete: 'Suppression', invoice: 'Facture' }[log.action] || log.action
-    return `<tr><td>${date}</td><td><strong>${log.username}</strong></td><td><span class="${actionClass}">${actionLabel}</span></td><td>${log.target}</td><td>${log.details}</td></tr>`
+    const actionLabel = {
+      login: 'Connexion',
+      create: 'Création',
+      update: 'Modification',
+      delete: 'Suppression',
+      invoice: 'Facture',
+      clock_out: 'Fin de service',
+      reset_servicetime: 'Réinit. temps service'
+    }[log.action] || log.action
+    return `<tr>
+      <td>${date}</td>
+      <td><strong>${log.username}</strong></td>
+      <td><span class="${actionClass}">${actionLabel}</span></td>
+      <td>${log.target || '—'}</td>
+      <td>${log.details || '—'}</td>
+    </tr>`
   }).join('')
 }
 
+// Lancement
+loadServiceTimes()
 loadLogs()
 </script>
 </body>
