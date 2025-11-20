@@ -19,7 +19,7 @@ h2{color:var(--primary-dark);margin-top:0}
 table{width:100%;border-collapse:collapse;margin-top:16px}
 th,td{padding:12px 10px;border-bottom:1px solid #eee;text-align:left;font-size:14px}
 th{background:#fff5f5;font-weight:600;color:var(--primary-dark)}
-.btn-danger{background:var(--danger);color:white;padding:12px 24px;border:none;border-radius:10px;cursor:pointer;font-weight:600;font-size:16px}
+.btn-danger{background:var(--danger);color:white;padding:12px 28px;border:none;border-radius:10px;cursor:pointer;font-weight:600;font-size:16px;transition:0.2s}
 .btn-danger:hover{background:#b91c1c}
 .action-create{color:var(--success)}
 .action-update{color:#ea580c}
@@ -64,6 +64,7 @@ th{background:#fff5f5;font-weight:600;color:var(--primary-dark)}
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
 const supabase = createClient("https://sevrfgivcpefyykuffti.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNldnJmZ2l2Y3BlZnl5a3VmZnRpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI5NDI1NTMsImV4cCI6MjA3ODUxODU1M30.YZnkSHsVWKQEhfU7xYfWyTFmtkM28Zuzdu7Y1sjBXQc")
 
+// Protection admin
 const user = JSON.parse(localStorage.getItem('sams_user') || '{}')
 if (!user || user.permission !== 'admin') {
   alert("Accès refusé - Admin uniquement")
@@ -81,34 +82,36 @@ async function loadServiceTimes() {
   }).join('')
 }
 
-// LE BOUTON QUI REMET VRAIMENT TOUT À 0 (version blindée)
+// BOUTON RÉINITIALISATION (VERSION QUI MARCHE À 100%)
 window.resetAllTimes = async () => {
-  const reason = prompt("REINITIALISATION COMPLÈTE DES TEMPS DE SERVICE\n\nCette action va remettre le servicetime de TOUS les utilisateurs à 0.\n\nRaison obligatoire (sera enregistrée dans les logs) :")
+  const reason = prompt("RÉINITIALISATION COMPLÈTE DES TEMPS DE SERVICE\n\nTous les servicetime seront remis à 0.\n\nRaison obligatoire (sera logguée) :")
   if (!reason || reason.trim() === "") return alert("Raison obligatoire !")
 
   if (!confirm("Confirmer la réinitialisation de TOUS les temps à 0 ?")) return
 
-  // Méthode la plus fiable : update sans filtre = touche toute la table
-  const { error } = await supabase
-    .from('login')
-    .update({ servicetime: 0 })
+  try {
+    // Cette condition est toujours vraie → met à jour toute la table
+    const { error } = await supabase
+      .from('login')
+      .update({ servicetime: 0 })
+      .gte('id', 0)
 
-  if (error) {
-    alert("Erreur Supabase : " + error.message)
-    return
+    if (error) throw error
+
+    // Log de l'action
+    await supabase.from('logs').insert({
+      user_id: user.id,
+      username: user.user,
+      action: 'reset_servicetime',
+      target: 'tous_les_utilisateurs',
+      details: `Raison : ${reason.trim()}`
+    })
+
+    alert("TOUS les temps de service ont été remis à 0 avec succès !")
+    loadServiceTimes()
+  } catch (e) {
+    alert("Erreur : " + e.message)
   }
-
-  // Log de l'action
-  await supabase.from('logs').insert({
-    user_id: user.id,
-    username: user.user,
-    action: 'reset_servicetime',
-    target: 'tous_les_utilisateurs',
-    details: `Raison : ${reason.trim()}`
-  })
-
-  alert("TOUS les temps de service ont été remis à 0 avec succès !")
-  loadServiceTimes()
 }
 
 // JOURNAL D'ACTIVITÉ
@@ -132,6 +135,7 @@ async function loadLogs() {
   }).join('')
 }
 
+// Lancement
 loadServiceTimes()
 loadLogs()
 </script>
