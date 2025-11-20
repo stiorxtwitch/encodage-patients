@@ -19,14 +19,13 @@ h2{color:var(--primary-dark);margin-top:0}
 table{width:100%;border-collapse:collapse;margin-top:16px}
 th,td{padding:12px 10px;border-bottom:1px solid #eee;text-align:left;font-size:14px}
 th{background:#fff5f5;font-weight:600;color:var(--primary-dark)}
+.btn-danger{background:var(--danger);color:white;padding:12px 24px;border:none;border-radius:10px;cursor:pointer;font-weight:600;font-size:16px}
+.btn-danger:hover{background:#b91c1c}
 .action-create{color:var(--success)}
 .action-update{color:#ea580c}
 .action-delete,.action-reset_servicetime{color:var(--danger)}
 .action-login{color:#2563eb}
-.action-invoice{color:#7c3aed}
-.action-clock_out{color:#7c3aed}
-.btn-danger{background:var(--danger);color:white;padding:10px 20px;border:none;border-radius:8px;cursor:pointer;font-weight:600}
-.btn-danger:hover{background:#b91c1c}
+.action-invoice,.action-clock_out{color:#7c3aed}
 </style>
 </head>
 <body>
@@ -38,30 +37,22 @@ th{background:#fff5f5;font-weight:600;color:var(--primary-dark)}
 
 <div class="container">
 
-  <!-- SECTION TEMPS DE SERVICE -->
+  <!-- TEMPS DE SERVICE -->
   <div class="card">
     <h2>Temps de service des utilisateurs</h2>
-    <button onclick="resetAllTimes()" class="btn-danger">Réinitialiser tous les temps de service</button>
-    <table id="timeTable">
-      <thead>
-        <tr><th>Utilisateur</th><th>Temps total</th></tr>
-      </thead>
+    <button onclick="resetAllTimes()" class="btn-danger">Réinitialiser TOUS les temps de service à 0</button>
+    <table id="timeTable" style="margin-top:20px">
+      <thead><tr><th>Utilisateur</th><th>Temps total</th></tr></thead>
       <tbody></tbody>
     </table>
   </div>
 
-  <!-- SECTION JOURNAL D'ACTIVITÉ -->
+  <!-- JOURNAL D'ACTIVITÉ -->
   <div class="card">
     <h2>Journal d’activité (100 dernières actions)</h2>
     <table id="logsTable">
       <thead>
-        <tr>
-          <th>Date</th>
-          <th>Utilisateur</th>
-          <th>Action</th>
-          <th>Cible</th>
-          <th>Détails</th>
-        </tr>
+        <tr><th>Date</th><th>Utilisateur</th><th>Action</th><th>Cible</th><th>Détails</th></tr>
       </thead>
       <tbody></tbody>
     </table>
@@ -79,67 +70,68 @@ if (!user || user.permission !== 'admin') {
   window.location.href = 'login.html'
 }
 
-// CHARGEMENT DES TEMPS DE SERVICE
+// CHARGEMENT DES TEMPS
 async function loadServiceTimes() {
-  const { data } = await supabase.from('login').select('user,servicetime').order('user', { ascending: true })
+  const { data } = await supabase.from('login').select('user,servicetime').order('user')
   const tbody = document.querySelector('#timeTable tbody')
   tbody.innerHTML = data.map(u => {
-    const hours = Math.floor((u.servicetime || 0) / 60)
-    const mins = (u.servicetime || 0) % 60
-    return `<tr><td><strong>${u.user}</strong></td><td>${hours}h ${mins}min</td></tr>`
+    const h = Math.floor((u.servicetime || 0)/60)
+    const m = (u.servicetime || 0)%60
+    return `<tr><td><strong>${u.user}</strong></td><td>${h}h ${m}min</td></tr>`
   }).join('')
 }
 
-// RÉINITIALISATION DES TEMPS
+// LE BOUTON QUI REMET VRAIMENT TOUT À 0 (version blindée)
 window.resetAllTimes = async () => {
-  const reason = prompt("⚠️ ÊTES-VOUS SÛR ?\n\nCette action va réinitialiser le temps de service de TOUS les utilisateurs à 0.\n\nRaison obligatoire (sera enregistrée dans les logs) :")
+  const reason = prompt("REINITIALISATION COMPLÈTE DES TEMPS DE SERVICE\n\nCette action va remettre le servicetime de TOUS les utilisateurs à 0.\n\nRaison obligatoire (sera enregistrée dans les logs) :")
   if (!reason || reason.trim() === "") return alert("Raison obligatoire !")
 
-  if (!confirm("Confirmez la réinitialisation totale ?")) return
+  if (!confirm("Confirmer la réinitialisation de TOUS les temps à 0 ?")) return
 
-  try {
-    await supabase.from('login').update({ servicetime: 0 })
-    await supabase.from('logs').insert({
-      user_id: user.id,
-      username: user.user,
-      action: 'reset_servicetime',
-      target: 'tous_les_utilisateurs',
-      details: `Raison: ${reason.trim()}`
-    })
-    alert("Tous les temps de service ont été réinitialisés à 0")
-    loadServiceTimes()
-  } catch (e) {
-    alert("Erreur: " + e.message)
+  // Méthode la plus fiable : update sans filtre = touche toute la table
+  const { error } = await supabase
+    .from('login')
+    .update({ servicetime: 0 })
+
+  if (error) {
+    alert("Erreur Supabase : " + error.message)
+    return
   }
+
+  // Log de l'action
+  await supabase.from('logs').insert({
+    user_id: user.id,
+    username: user.user,
+    action: 'reset_servicetime',
+    target: 'tous_les_utilisateurs',
+    details: `Raison : ${reason.trim()}`
+  })
+
+  alert("TOUS les temps de service ont été remis à 0 avec succès !")
+  loadServiceTimes()
 }
 
-// CHARGEMENT DES LOGS
+// JOURNAL D'ACTIVITÉ
 async function loadLogs() {
   const { data } = await supabase.from('logs').select('*').order('created_at', { ascending: false }).limit(100)
   const tbody = document.querySelector('#logsTable tbody')
   tbody.innerHTML = data.map(log => {
     const date = new Date(log.created_at).toLocaleString('fr-FR')
-    const actionClass = `action-${log.action}`
     const actionLabel = {
-      login: 'Connexion',
-      create: 'Création',
-      update: 'Modification',
-      delete: 'Suppression',
-      invoice: 'Facture',
-      clock_out: 'Fin de service',
+      login: 'Connexion', create: 'Création', update: 'Modification',
+      delete: 'Suppression', invoice: 'Facture', clock_out: 'Fin de service',
       reset_servicetime: 'Réinit. temps service'
     }[log.action] || log.action
     return `<tr>
       <td>${date}</td>
       <td><strong>${log.username}</strong></td>
-      <td><span class="${actionClass}">${actionLabel}</span></td>
+      <td><span class="action-${log.action}">${actionLabel}</span></td>
       <td>${log.target || '—'}</td>
       <td>${log.details || '—'}</td>
     </tr>`
   }).join('')
 }
 
-// Lancement
 loadServiceTimes()
 loadLogs()
 </script>
