@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>SAMS - Prise de service</title>
 <style>
-:root{--primary:#e11d48;--primary-dark:#991b1b;--border:#fecaca;--shadow:0 6px 18px rgba(225,29,72,0.08);--danger:#dc2626}
+:root{--primary:#e11d48;--primary-dark:#991b1b;--border:#fecaca;--shadow:0 6px 18px rgba(225,29,72,0.08);--danger:#dc2626;--success:#16a34a}
 body{font-family:Inter,system-ui;margin:0;background:url('https://i.imgur.com/A6V1lhN.jpg') no-repeat center center fixed;background-size:cover;color:#1f1f1f;min-height:100vh}
 body::before{content:"";position:fixed;inset:0;background:rgba(255,255,255,0.68);backdrop-filter:blur(4px);z-index:-1}
 header{background:linear-gradient(90deg,var(--primary),var(--primary-dark));color:white;padding:16px 24px;display:flex;align-items:center;justify-content:space-between;position:relative;z-index:10}
@@ -21,6 +21,7 @@ button.primary:hover{background:var(--primary-dark)}
 #recapForm{margin-top:40px;padding:20px;background:#f9f9f9;border-radius:12px;display:none}
 .item{display:flex;justify-content:space-between;align-items:center;background:white;padding:12px;border-radius:8px;margin:8px 0;box-shadow:0 2px 6px rgba(0,0,0,0.05)}
 .item button{color:var(--danger);background:none;border:none;cursor:pointer;font-size:20px}
+.muted{color:#6b7280;font-style:italic}
 </style>
 </head>
 <body>
@@ -39,9 +40,9 @@ button.primary:hover{background:var(--primary-dark)}
 
     <div id="recapForm">
       <h3 style="color:var(--primary)">Récapitulatif des interventions</h3>
-      <div id="itemsList"><div class="muted">Aucune intervention</div></div>
+      <div id="itemsList"><div class="muted">Aucune intervention pour le moment</div></div>
       
-      <div style="margin:20px 0;display:flex;gap:10px;flex-wrap:wrap;justify-content:center">
+      <div style="margin:30px 0;display:flex;gap:12px;flex-wrap:wrap;justify-content:center;align-items:center">
         <select id="itemType">
           <option>Blessure légère</option>
           <option>Blessure moyenne</option>
@@ -52,11 +53,13 @@ button.primary:hover{background:var(--primary-dark)}
           <option>Accessoire</option>
           <option>Chambre privée</option>
         </select>
-        <input type="number" id="itemQty" value="1" min="1" style="width:80px">
-        <button class="ghost" onclick="addItem()">Ajouter</button>
+        <input type="number" id="itemQty" value="1" min="1" style="width:80px;padding:10px">
+        <button class="primary" style="padding:12px 20px;font-size:16px" onclick="addItem()">Ajouter</button>
       </div>
 
-      <button class="primary" onclick="endShift()" style="background:#16a34a;margin-top:30px">Fin de service</button>
+      <button class="primary" onclick="endShift()" style="background:#16a34a;margin-top:30px;padding:16px 40px;font-size:20px">
+        Fin de service
+      </button>
     </div>
   </div>
 </div>
@@ -68,10 +71,9 @@ const supabase = createClient("https://sevrfgivcpefyykuffti.supabase.co", "eyJhb
 if (!localStorage.getItem('sams_user')) window.location.href = 'login.html'
 const user = JSON.parse(localStorage.getItem('sams_user'))
 
-// Récupération persistante
+// Variables persistantes
 let items = JSON.parse(localStorage.getItem('current_shift_items') || '[]')
 let startTime = localStorage.getItem('shift_start_time')
-
 let timerInterval = null
 
 function updateTimer() {
@@ -88,15 +90,16 @@ function startTimer() {
   updateTimer()
 }
 
-// Au chargement de la page
+// Si déjà en service → on reprend là où on s’était arrêté
 if (startTime) {
-  document.getElementById('statusText').textContent = "Service en cours depuis " + new Date(startTime).toLocaleTimeString('fr-FR')
+  document.getElementById('statusText').innerHTML = `Service en cours depuis <strong>${new Date(startTime).toLocaleTimeString('fr-FR')}</strong>`
   document.getElementById('startBtn').style.display = 'none'
   document.getElementById('recapForm').style.display = 'block'
   renderItems()
   startTimer()
 }
 
+// Démarrer le service
 document.getElementById('startBtn').onclick = () => {
   startTime = new Date().toISOString()
   localStorage.setItem('shift_start_time', startTime)
@@ -105,34 +108,40 @@ document.getElementById('startBtn').onclick = () => {
   location.reload()
 }
 
+// AJOUT D'INTERVENTION (corrigé : itemQty au lieu de itemQyt)
 window.addItem = () => {
   const type = document.getElementById('itemType').value
-  const qty = parseInt(document.getItemById('itemQty').value) || 1
+  const qty = parseInt(document.getElementById('itemQty').value) || 1
   items.push({ type, qty })
   localStorage.setItem('current_shift_items', JSON.stringify(items))
   renderItems()
+  document.getElementById('itemQty').value = 1
 }
 
 function renderItems() {
   const list = document.getElementById('itemsList')
-  list.innerHTML = items.length ? items.map((it, i) => `
+  if (items.length === 0) {
+    list.innerHTML = '<div class="muted">Aucune intervention pour le moment</div>'
+    return
+  }
+  list.innerHTML = items.map((it, i) => `
     <div class="item">
-      <span>${it.qty}x ${it.type}</span>
-      <button onclick="items.splice(${i},1); localStorage.setItem('current_shift_items', JSON.stringify(items)); renderItems()">×</button>
+      <span>${it.qty}× ${it.type}</span>
+      <button onclick="items.splice(${i},1); localStorage.setItem('current_shift_items', JSON.stringify(items)); renderItems()">Supprimer</button>
     </div>
-  `).join('') : '<div class="muted">Aucune intervention</div>'
+  `).join('')
 }
 
+// Fin de service
 window.endShift = async () => {
   if (!startTime) return
-  
   const endTime = new Date()
   const duration = Math.floor((endTime - new Date(startTime)) / 60000)
 
   const recap = {}
   items.forEach(i => recap[i.type] = (recap[i.type] || 0) + i.qty)
 
-  if (!confirm(`Terminer le service ?\nDurée: ${duration} minutes\nInterventions: ${JSON.stringify(recap)}`)) return
+  if (!confirm(`Terminer le service ?\n\nDurée : ${duration} minutes\nInterventions : ${items.length > 0 ? items.map(i => `${i.qty}×${i.type}`).join(', ') : 'Aucune'}`)) return
 
   try {
     await supabase.from('shifts').insert({
@@ -150,7 +159,7 @@ window.endShift = async () => {
       user_id: user.id,
       username: user.user,
       action: 'clock_out',
-      details: `Durée: ${duration} min | Interventions: ${JSON.stringify(recap)}`
+      details: `Durée: ${duration} min | ${JSON.stringify(recap)}`
     })
 
     localStorage.removeItem('shift_start_time')
@@ -159,13 +168,13 @@ window.endShift = async () => {
     alert(`Service terminé ! ${duration} minutes ajoutées à ton temps total`)
     location.reload()
   } catch (e) {
-    alert("Erreur: " + e.message)
+    alert("Erreur : " + e.message)
   }
 }
 
-// Démarrage auto si déjà en service
-startTimer()
+// Démarrage auto
 renderItems()
+if (startTime) startTimer()
 </script>
 </body>
 </html>
