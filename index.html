@@ -55,6 +55,10 @@ button.danger:hover{background:rgba(220,38,38,0.05)}
   <div class="grid">
     <aside class="card">
       <div class="menu">
+        <!-- NOUVEAUX BOUTONS AJOUTÉS -->
+        <button id="nav-clockin">Prise de service</button>
+        <button id="nav-profile">Mon profil</button>
+        <hr style="margin:16px 0; border:none; border-top:1px solid #fecaca;">
         <button id="nav-list" class="active">Liste patients</button>
         <button id="nav-new">Nouveau patient</button>
         <button id="nav-denied">Refus de paiement</button>
@@ -111,10 +115,8 @@ button.danger:hover{background:rgba(220,38,38,0.05)}
 
 <script type="module">
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
-
 const SUPABASE_URL = "https://sevrfgivcpefyykuffti.supabase.co"
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNldnJmZ2l2Y3BlZnl5a3VmZnRpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI5NDI1NTMsImV4cCI6MjA3ODUxODU1M30.YZnkSHsVWKQEhfU7xYfWyTFmtkM28Zuzdu7Y1sjBXQc"
-
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY)
 
 // === PROTECTION ===
@@ -125,44 +127,42 @@ if (!userData) {
 }
 const user = JSON.parse(userData)
 
-// Bouton Déconnexion
+// Déconnexion
 document.getElementById('logoutBtn').onclick = () => {
   localStorage.removeItem('sams_user')
   window.location.href = 'login.html'
 }
 
-// Bouton Admin
+// Admin Panel (seulement si admin)
 if (user.permission === 'admin') {
   const menu = document.querySelector('.menu')
   const adminBtn = document.createElement('button')
   adminBtn.textContent = 'Admin Panel'
-  adminBtn.style.cssText = 'background:#1e40af;color:white;margin-bottom:8px;'
+  adminBtn.style.cssText = 'background:#1e40af;color:white;font-weight:600;margin-bottom:12px;'
   adminBtn.onclick = () => window.location.href = 'admin.html'
   menu.insertBefore(adminBtn, menu.firstChild)
 }
 
-// === NAVIGATION VERS PAGES ===
+// === LIENS VERS LES NOUVELLES PAGES ===
+document.getElementById('nav-clockin').onclick = () => window.location.href = 'clockin.html'
+document.getElementById('nav-profile').onclick = () => window.location.href = 'profile.html'
 document.getElementById('nav-denied').onclick = () => window.location.href = 'denied.html'
 document.getElementById('nav-dead').onclick = () => window.location.href = 'dead.html'
 document.getElementById('nav-unpaid').onclick = () => window.location.href = 'unpaid.html'
 
-// LOG
+// === TOUT TON CODE ORIGINAL (patients, factures, logs, etc.) ===
 async function logAction(action, target, details) {
   await supabase.from('logs').insert({ user_id: user.id, username: user.user, action, target, details })
 }
-
 const views = { list: document.getElementById('view-list'), new: document.getElementById('view-new'), dossier: document.getElementById('view-dossier') }
 let patients = [], current = null, invoiceItems = []
-
 function formatDateTime(date) { return date.toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) }
-
 function show(view) {
   Object.values(views).forEach(v => v.style.display = 'none')
   views[view].style.display = 'block'
   document.querySelectorAll('.menu button').forEach(b => b.classList.remove('active'))
   if (view !== 'dossier') document.getElementById(`nav-${view}`).classList.add('active')
 }
-
 async function loadPatients() {
   try {
     const { data, error } = await supabase.from('patients').select('*').order('id', { ascending: false })
@@ -174,15 +174,12 @@ async function loadPatients() {
     document.getElementById('listContent').innerHTML = `<div class="error">Connexion échouée: ${err.message}</div>`
   }
 }
-
 function renderLists(filter = "") {
   const filtered = patients.filter(p => (p.patientNameId || '').toLowerCase().includes(filter.toLowerCase()))
   document.getElementById('patientList').innerHTML = filtered.map(p => `<div class="patient-item" onclick="openDossier(${p.id})"><div><strong>${p.patientNameId}</strong><div class="muted">${p.profession || '—'} | ${p.totalCost || 0}$</div></div></div>`).join('')
   document.getElementById('listContent').innerHTML = filtered.length ? filtered.map(p => `<div class="patient-item" onclick="openDossier(${p.id})"><div><strong>${p.patientNameId}</strong><div class="muted">${p.dob || 'N/A'} • ${p.profession || 'N/A'} • Total: ${p.totalCost || 0}$</div></div></div>`).join('') : '<div class="muted">Aucun patient</div>'
 }
-
 window.openDossier = (id) => { current = patients.find(p => p.id === id); show('dossier'); renderDossier() }
-
 function renderDossier() {
   const c = current
   const created = c.createdAt ? `Créé le : ${formatDateTime(new Date(c.createdAt))}` : ''
@@ -190,7 +187,6 @@ function renderDossier() {
   const recap = c.invoiceRecap ? ` (${c.invoiceRecap})` : ''
   document.getElementById('rapportContent').textContent = `Prénom Nom du SAMS : ${c.samsName || ''}\nPrénom Nom ID du patient : ${c.patientNameId || ''}\nDate de naissance : ${c.dob || ''}\nProfession : ${c.profession || ''}\nAntécédents médicaux (les 2 derniers) : ${c.antecedents || ''}\nRécapitulatif des blessures : ${c.blessures || ''}\nRécapitulatif de la raison de l’hospitalisation : ${c.raison || ''}\nExamens (DÉTAILLER LES OP) : ${c.examens || ''}\n${created}\n${invoice}\nCoût total (en $) : ${c.totalCost || 0} $${recap}`.trim()
 }
-
 document.getElementById('patientForm').onsubmit = async e => {
   e.preventDefault()
   const p = { samsName: document.getElementById('samsName').value.trim(), patientNameId: document.getElementById('patientNameId').value.trim(), dob: document.getElementById('dob').value, profession: document.getElementById('profession').value.trim(), antecedents: document.getElementById('antecedents').value.trim(), blessures: document.getElementById('blessures').value.trim(), raison: document.getElementById('raison').value.trim(), examens: document.getElementById('examens').value.trim(), totalCost: 0, invoiceRecap: '', createdAt: current ? current.createdAt : new Date().toISOString(), invoiceDate: current?.invoiceDate || null }
@@ -199,18 +195,14 @@ document.getElementById('patientForm').onsubmit = async e => {
     await loadPatients(); alert("Patient enregistré"); clearForm(); show('list')
   } catch (err) { document.getElementById('formError').textContent = err.message; document.getElementById('formError').style.display = 'block' }
 }
-
 document.getElementById('deletePatient').onclick = async () => { if (!current || !confirm("Supprimer ce patient ?")) return; await logAction('delete', 'patient', `ID: ${current.id} | ${current.patientNameId}`); await supabase.from('patients').delete().eq('id', current.id); await loadPatients(); show('list') }
-
 document.getElementById('addInvoiceBtn').onclick = () => { invoiceItems = []; showInvoiceModal() }
-
 function showInvoiceModal() {
   const modal = document.createElement('div')
   modal.style.cssText = `position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:1000`
   modal.innerHTML = `<div class="card" style="width:500px;max-height:80vh;overflow:auto"><h3 style="color:var(--primary)">Ajouter une facture</h3><div id="invoiceList"><div class="muted">Aucun élément</div></div><div class="row" style="margin-top:10px"><select id="itemType"><option value="blessure_légère">Blessure légère (1000$)</option><option value="blessure_moyenne">Blessure moyenne (2500$)</option><option value="blessure_grave">Blessure grave (3000$)</option><option value="IRM">IRM (500$)</option><option value="Radio">Radio (500$)</option><option value="Échographie">Échographie (500$)</option><option value="accessoire">Accessoire (2000$)</option><option value="chambre">Chambre privée (10000$)</option></select><input type="number" id="itemQty" value="1" min="1" style="width:80px"><button class="ghost" onclick="addInvoiceItem()">Ajouter</button></div><div class="actions" style="margin-top:16px"><button class="primary" onclick="saveInvoice()">Enregistrer facture</button><button class="ghost" onclick="this.closest('[style*=fixed]').remove()">Annuler</button></div></div>`
   document.body.appendChild(modal)
 }
-
 window.addInvoiceItem = () => {
   const type = document.getElementById('itemType').value
   const qty = parseInt(document.getElementById('itemQty').value) || 1
@@ -220,12 +212,10 @@ window.addInvoiceItem = () => {
   updateInvoiceList()
   document.getElementById('itemQty').value = 1
 }
-
 function updateInvoiceList() {
   const list = document.getElementById('invoiceList')
   list.innerHTML = invoiceItems.map((item, i) => `<div class="invoice-item"><span>${item.label} x${item.qty}</span><span>${item.cost}$</span><button class="ghost" style="color:var(--danger)" onclick="invoiceItems.splice(${i},1); updateInvoiceList()">Suppr</button></div>`).join('') || '<div class="muted">Aucun élément</div>'
 }
-
 window.saveInvoice = async () => {
   if (invoiceItems.length === 0) return alert("Ajoutez au moins un élément")
   const total = invoiceItems.reduce((s, i) => s + i.cost, 0)
@@ -243,11 +233,8 @@ window.saveInvoice = async () => {
     invoiceItems = []
   } catch (err) { alert("Erreur: " + err.message) }
 }
-
 function clearForm() { document.getElementById('patientForm').reset(); current = null; document.getElementById('formTitle').textContent = 'Nouveau patient' }
-
 document.getElementById('editPatient').onclick = () => { if (!current) return; show('new'); document.getElementById('formTitle').textContent = 'Modifier patient'; ['samsName','patientNameId','dob','profession','antecedents','blessures','raison','examens'].forEach(id => document.getElementById(id).value = current[id] || '') }
-
 document.getElementById('printReport').onclick = () => window.print()
 document.getElementById('searchPatient').oninput = e => renderLists(e.target.value)
 document.getElementById('nav-list').onclick = () => show('list')
