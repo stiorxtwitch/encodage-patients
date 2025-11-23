@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SAMS - Tarifs & Codes Radio</title>
+<style>
+:root{--primary:#e11d48;--primary-dark:#991b1b;--border:#fecaca;--shadow:0 6px 18px rgba(225,29,72,0.08);--danger:#dc2626}
+body{font-family:Inter,system-ui;margin:0;background:url('https://i.imgur.com/A6V1lhN.jpg') no-repeat center center fixed;background-size:cover;color:#1f1f1f;min-height:100vh}
+body::before{content:"";position:fixed;inset:0;background:rgba(255,255,255,0.68);backdrop-filter:blur(4px);z-index:-1}
+header{background:linear-gradient(90deg,var(--primary),var(--primary-dark));color:white;padding:16px 24px;display:flex;align-items:center;justify-content:space-between;position:relative;z-index:10}
+header img{height:58px;border-radius:14px;box-shadow:0 3px 10px rgba(0,0,0,0.2)}
+h1{margin:0;font-size:20px;font-weight:700}
+.back-btn{background:#dc2626;color:white;padding:8px 16px;border-radius:8px;font-size:14px;cursor:pointer;border:none;transition:0.2s}
+.back-btn:hover{background:#b91c1c}
+.container{max-width:1100px;margin:40px auto;padding:20px}
+.card{background:rgba(255,255,255,0.94);padding:32px;border-radius:16px;box-shadow:var(--shadow);border:1px solid var(--border);backdrop-filter:blur(12px);margin-bottom:32px}
+h2{color:var(--primary-dark);border-bottom:3px solid var(--primary);padding-bottom:8px;margin-bottom:24px;font-size:24px}
+table{width:100%;border-collapse:collapse;margin:20px 0}
+th,td{padding:14px 12px;border-bottom:1px solid #eee;text-align:left;vertical-align:top}
+th{background:var(--primary-light);color:var(--primary-dark);font-weight:600}
+tr:hover{background:#fff5f5}
+.code{font-weight:bold;color:var(--primary-dark)}
+.freq{color:#16a34a;font-weight:bold}
+pre{font-family:monospace;background:#1f1f1f;color:#f0f0f0;padding:20px;border-radius:12px;overflow-x:auto;font-size:15px;line-height:1.6}
+</style>
+</head>
+<body>
+<header>
+  <img src="https://i.imgur.com/N1tQTgU.png" alt="SAMS">
+  <h1>SAMS - Tarifs & Codes Radio</h1>
+  <a href="index.html" class="back-btn">Retour</a>
+</header>
+
+<div class="container">
+
+  <!-- SECTION TARIFS -->
+  <div class="card">
+    <h2>Tarifs des prestations SAMS</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Type de prestation</th>
+          <th>Exemple / Description</th>
+          <th>Prix</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Blessures légères</td><td>Petite coupure / hématome / brûlure légère</td><td>1 000 $</td></tr>
+        <tr><td>Blessures moyennes</td><td>Entorse / Fracture simple / coupure importante</td><td>2 500 $</td></tr>
+        <tr><td>Blessures graves</td><td>Fracture multiple / blessure par balle / AVC</td><td>5 000 $</td></tr>
+        <tr><td>Radio / IRM / Scanner</td><td>Imagerie médicale</td><td>500 $ / unité</td></tr>
+        <tr><td>Béquilles / Fauteuil roulant / Attelle / Minerve</td><td>Bloquer un membre / articulation</td><td>2 000 $ / unité</td></tr>
+        <tr><td>Réanimation</td><td>Intervention de réanimation</td><td>5 000 $</td></tr>
+        <tr><td>Objets pharmaceutiques</td><td>Médicaments, pansements</td><td>1 500 $ / unité</td></tr>
+        <tr><td>RDV psychologique</td><td>Consultation psychologique</td><td>10 000 $ / séance</td></tr>
+        <tr><td>RDV psychologique - PPAL</td><td>Consultation – Permis de Port d’Armes Lourdes</td><td>30 000 $</td></tr>
+        <tr><td>Chambre privée</td><td>Repos en chambre privée</td><td>10 000 $</td></tr>
+        <tr><td>RDV Médical</td><td>Grossesse, ORL, Ophtalmologue…</td><td>2 500 $ / séance</td></tr>
+        <tr><td>Examens médicaux en laboratoire</td><td>Analyses en laboratoire</td><td>2 500 $</td></tr>
+        <tr><td>Accouchement</td><td>Par voie basse ou césarienne</td><td>10 000 $</td></tr>
+        <tr><td>Chirurgie plastique [Légère]</td><td>1 partie du corps</td><td>200 000 $</td></tr>
+        <tr><td>Chirurgie plastique [Moyenne]</td><td>2 à 3 parties du corps</td><td>500 000 $</td></tr>
+        <tr><td>Chirurgie plastique [Lourde]</td><td>4 parties du corps et plus</td><td>750 000 $</td></tr>
+        <tr><td>Prothèse (tous types)</td><td>Remplacer une partie du corps</td><td>10 000 $ / prothèse</td></tr>
+        <tr><td>Soins de suite et de réadaptation – SSR</td><td>Séance de rééducation musculaire ou autre</td><td>5 000 $ / séance</td></tr>
+        <tr><td>Transplantation d’organes</td><td>Nécessite un transport d’organe pré-opération</td><td>50 000 $ / organe</td></tr>
+        <tr><td>Greffe de peaux [Légère]</td><td>1 à 3 partie(s) du corps</td><td>7 500 $</td></tr>
+        <tr><td>Greffe de peaux [Lourde]</td><td>Plus de 4 parties du corps</td><td>10 000 $</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- SECTION CODES RADIO -->
+  <div class="card">
+    <h2>Codes Radio SAMS</h2>
+    <pre>
+↓ LES CODES RADIO AU SEIN DE LA SAMS ↓
+
+<span class="code">10-04</span>  Message reçu / Affirmatif.
+<span class="code">10-05</span>  Négatif.
+<span class="code">10-07</span>  Prise de service.
+<span class="code">10-08</span>  Fin de service.
+<span class="code">10-17</span>  En route vers Intervention (préciser le lieu-dit)
+<span class="code">10-18</span>  Retour Hôpital avec victime à bord du véhicule
+<span class="code">10-19</span>  Retour Hôpital (Sans victime)
+<span class="code">10-23</span>  Arrivé sur les lieux, Radio en Stand-By jusqu'au prochain message.
+<span class="code">10-24</span>  Renforts demandé (préciser le lieu-dit).
+<span class="code">10-27</span>  En route vers Intervention en PH (préciser le lieu-dit)
+<span class="code">10-28</span>  Retour Hôpital avec victime en PH + besoin de quelqu'un sur le toit
+<span class="code">10-29</span>  Retour Hôpital sans victime en PH (Faire attention à toute sortie de PH)
+<span class="code">10-41</span>  Début de Patrouille
+<span class="code">10-42</span>  Fin de Patrouille
+<span class="code">10-99</span>  Communication Radio Prioritaire/Constante.
+<span class="code">10-1000</span> Victime Décédée
+
+Liste des fréquences radio utilisées par la SAMS :
+Fréquence <span class="freq">Patrouille Nord/Sud</span> : 112
+Fréquence <span class="freq">Évènement/Opération</span> : 110
+    </pre>
+  </div>
+
+</div>
+</body>
+</html>
