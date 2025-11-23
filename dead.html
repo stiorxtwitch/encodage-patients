@@ -5,37 +5,43 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>SAMS - Morgue</title>
 <style>
-:root{--primary:#e11d48;--primary-dark:#991b1b;--border:#fecaca;--shadow:0 6px 18px rgba(225,29,72,0.08);--danger:#dc2626;--success:#16a34a;--warning:#ea580c}
-body{font-family:Inter,system-ui;margin:0;background:url('https://i.imgur.com/A6V1lhN.jpg') no-repeat center center fixed;background-size:cover;color:#1f1f1f;position:relative;min-height:100vh}
-body::before{content:"";position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(255,255,255,0.68);backdrop-filter:blur(4px);z-index:-1}
-header{background:linear-gradient(90deg,var(--primary),var(--primary-dark));color:white;padding:16px 24px;display:flex;align-items:center;justify-content:space-between;position:relative;z-index:10}
-header img{height:58px;border-radius:14px;box-shadow:0 3px 10px rgba(0,0,0,0.2)}
-h1{margin:0;font-size:20px;font-weight:700}
-.back-btn{background:#dc2626;color:white;padding:8px 16px;border-radius:8px;font-size:14px;cursor:pointer;border:none;transition:0.2s}
+:root{--primary:#e11d48;--primary-dark:#991b1b;--border:#fecaca;--shadow:0 6px 18px rgba(225,29,72,0.08);--danger:#dc2626;--success:#16a34a;--warning:#ea580c;--light:#fee2e2}
+body{font-family:Inter,system-ui;margin:0;background:url('https://i.imgur.com/A6V1lhN.jpg') center/cover fixed;color:#1f1f1f;position:relative;min-height:100vh}
+body::before{content:"";position:fixed;inset:0;background:rgba(255,255,255,0.68);backdrop-filter:blur(4px);z-index:-1}
+header{background:linear-gradient(90deg,var(--primary),var(--primary-dark));color:white;padding:16px 24px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 4px 12px rgba(225,29,72,0.15)}
+header img{height:58px;border-radius:14px}
+header h1{margin:0;font-size:20px;font-weight:700}
+.back-btn{background:#dc2626;color:white;padding:8px 16px;border-radius:8px;font-size:14px;cursor:pointer;border:none;transition:.2s}
 .back-btn:hover{background:#b91c1c}
 .container{max-width:1200px;margin:28px auto;padding:16px}
 .grid{display:grid;grid-template-columns:320px 1fr;gap:24px}
-.card{background:rgba(255,255,255,0.88);padding:20px;border-radius:14px;box-shadow:var(--shadow);border:1px solid var(--border);backdrop-filter:blur(10px)}
-.menu button{display:block;width:100%;text-align:left;padding:12px;border:0;background:none;border-radius:10px;margin-bottom:8px;cursor:pointer;transition:0.2s;font-weight:500}
-.menu button:hover{background:#fee2e2;color:var(--primary)}
+.card{background:rgba(255,255,255,0.92);padding:20px;border-radius:14px;box-shadow:var(--shadow);border:1px solid var(--border);backdrop-filter:blur(10px)}
+.menu button{display:block;width:100%;text-align:left;padding:12px;border:none;background:none;border-radius:10px;margin-bottom:8px;cursor:pointer;font-weight:500;transition:.2s}
+.menu button:hover{background:var(--light);color:var(--primary)}
 .menu button.active{background:var(--primary);color:white;font-weight:600}
-.patient-item{padding:14px;border-radius:12px;border:1px solid var(--border);margin-bottom:10px;cursor:pointer;transition:0.2s;display:flex;justify-content:space-between;align-items:center;position:relative}
-.patient-item:hover{background:#fee2e2;border-color:var(--primary)}
+.patient-item{padding:14px;border-radius:12px;border:1px solid var(--border);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;transition:.2s;position:relative}
+.patient-item:hover{background:var(--light);border-color:var(--primary)}
 .patient-item.validated{border-left:5px solid var(--success)}
 .patient-item.refused{border-left:5px solid var(--danger)}
 .patient-item.pending{border-left:5px solid var(--warning)}
-.status-badge{position:absolute;top:8px;right:8px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;color:white}
+.status-badge{position:absolute;top:8px;right:8px;padding:3px 9px;border-radius:20px;font-size:11px;color:white;font-weight:600}
 .validated .status-badge{background:var(--success)}
 .refused .status-badge{background:var(--danger)}
 .pending .status-badge{background:var(--warning)}
-.muted{color:#6b7280;font-size:13px}
 .report{white-space:pre-wrap;background:#fffafa;padding:18px;border-radius:12px;border:1px solid var(--border);font-family:monospace;font-size:14px;line-height:1.8}
 .validation-comment{background:#fff3cd;padding:12px;border-radius:8px;border-left:4px solid #f59e0b;margin:15px 0;font-style:italic;color:#92400e}
-.search-bar{margin:12px 0;padding:10px 14px;border-radius:10px;border:1px solid var(--border);font-size:14px}
 .actions{margin-top:16px;display:flex;gap:10px;flex-wrap:wrap}
+button.primary{background:var(--primary);color:white;padding:10px 18px;border:none;border-radius:10px;cursor:pointer;font-weight:600;transition:.2s}
+button.primary:hover{background:var(--primary-dark)}
 button.success{background:var(--success);color:white}
 button.danger{background:var(--danger);color:white}
-.loading{text-align:center;color:#6b7280;padding:20px}
+button.ghost{background:transparent;border:1.5px solid var(--border);padding:10px 16px;border-radius:10px;cursor:pointer;transition:.2s}
+button.ghost:hover{border-color:var(--primary);background:var(--light)}
+input,textarea{width:100%;padding:10px;margin-top:6px;border-radius:8px;border:1px solid var(--border);box-sizing:border-box}
+input:focus,textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(225,29,72,0.15)}
+.row{display:flex;gap:12px;flex-wrap:wrap}
+.col{flex:1;min-width:200px}
+.search-bar{margin:12px 0;padding:10px 14px;border-radius:10px;border:1px solid var(--border);width:100%;box-sizing:border-box}
 </style>
 </head>
 <body>
@@ -52,37 +58,40 @@ button.danger{background:var(--danger);color:white}
         <button id="nav-new">Nouveau décès</button>
       </div>
       <input type="text" id="search" class="search-bar" placeholder="Rechercher un patient...">
-      <div id="list"></div>
+      <div id="patientList"></div>
     </aside>
     <main>
       <section id="view-list" class="card">
         <h2>Patients décédés</h2>
-        <div id="listContent"><div class="loading">Chargement...</div></div>
+        <div id="listContent"></div>
       </section>
+
       <section id="view-new" class="card" style="display:none;">
-        <h2>Nouveau décès</h2>
-        <form id="form">
+        <h2 id="formTitle">Nouveau décès</h2>
+        <form id="patientForm">
           <div class="row">
             <div class="col"><label>Prénom Nom du SAMS</label><input type="text" id="samsName" required></div>
-            <div class="col"><label>Prénom Nom ID du patient</label><input type="text" id="patientID" required></div>
+            <div class="col"><label>Prénom Nom ID patient</label><input type="text" id="patientNameId" required></div>
           </div>
           <label>Date et heure de la prise en charge</label>
           <input type="datetime-local" id="date" required>
-          <label>Raison du coma / décès</label>
-          <textarea id="raison" required></textarea>
+          <label>Raison du décès</label>
+          <textarea id="reason" required></textarea>
           <div class="actions">
-            <button class="primary" type="submit">Enregistrer</button>
-            <button type="button" id="clear" class="ghost">Effacer</button>
+            <button type="submit" class="primary">Enregistrer</button>
+            <button type="button" id="clearForm" class="ghost">Effacer</button>
           </div>
         </form>
       </section>
+
       <section id="view-dossier" class="card" style="display:none;">
         <h2>Dossier décès</h2>
         <div id="report" class="report"></div>
         <div id="validationComment" class="validation-comment" style="display:none;"></div>
         <div id="adminActions" class="actions" style="display:none;"></div>
         <div class="actions">
-          <button class="ghost" onclick="show('list')">Retour à la liste</button>
+          <button id="editBtn" class="ghost">Modifier</button>
+          <button class="ghost" onclick="showView('list')">Retour</button>
         </div>
       </section>
     </main>
@@ -97,78 +106,73 @@ if (!localStorage.getItem('sams_user')) window.location.href = 'login.html'
 const user = JSON.parse(localStorage.getItem('sams_user'))
 const isAdmin = user.permission === 'admin'
 
-let items = [], current = null
-const views = { list: document.getElementById('view-list'), new: document.getElementById('view-new'), dossier: document.getElementById('view-dossier') }
+let list = [], current = null
 
-function show(v) {
-  Object.values(views).forEach(x => x.style.display = 'none')
+const views = {
+  list: document.getElementById('view-list'),
+  form: document.getElementById('view-new'),
+  dossier: document.getElementById('view-dossier')
+}
+
+function showView(v) {
+  Object.values(views).forEach(el => el.style.display = 'none')
   views[v].style.display = 'block'
   document.querySelectorAll('.menu button').forEach(b => b.classList.remove('active'))
-  document.getElementById(`nav-${v}`).classList.add('active')
+  document.getElementById('nav-' + (v === 'form' ? 'new' : v)).classList.add('active')
 }
 
 async function load() {
   const { data } = await supabase.from('dead').select('*').order('id', { ascending: false })
-  items = data || []
-  render()
-  document.querySelector('.loading')?.remove()
+  list = data || []
+  renderList()
 }
 
-function render(filter = "") {
-  const f = items.filter(i => (i.patientID || '').toLowerCase().includes(filter.toLowerCase()))
-  const html = f.map(i => {
+function renderList(filter = "") {
+  const filtered = list.filter(i => (i.patientNameId || '').toLowerCase().includes(filter.toLowerCase()))
+  const html = filtered.map(i => {
     const status = i.validation_status || 'pending'
     const badge = status === 'validated' ? 'Validé' : status === 'refused' ? 'Refusé' : 'En attente'
     return `<div class="patient-item ${status}" onclick="openDossier(${i.id})">
-      <div><strong>${i.patientID}</strong><div class="muted">${new Date(i.date).toLocaleDateString('fr-FR')}</div></div>
+      <div><strong>${i.patientNameId}</strong><div class="muted">${new Date(i.date).toLocaleDateString('fr-FR')}</div></div>
       <span class="status-badge">${badge}</span>
     </div>`
   }).join('')
-  document.getElementById('list').innerHTML = html
+  document.getElementById('patientList').innerHTML = html
   document.getElementById('listContent').innerHTML = html || '<div class="muted">Aucun décès enregistré</div>'
 }
 
-window.openDossier = (id) => {
-  current = items.find(x => x.id === id)
-  document.getElementById('report').textContent =
+window.openDossier = async (id) => {
+  current = list.find(x => x.id === id)
+  document.getElementById('report').textContent = 
 `Prénom Nom du SAMS : ${current.samsName}
-Prénom Nom ID du patient : ${current.patientID}
+Prénom Nom ID du patient : ${current.patientNameId}
 Date et heure de la prise en charge : ${new Date(current.date).toLocaleString('fr-FR')}
-Raison du coma / décès : ${current.raison}`
+Raison du décès : ${current.reason || current.raison}`
 
   const commentDiv = document.getElementById('validationComment')
   if (current.validation_status === 'refused' && current.validation_comment) {
-    commentDiv.textContent = "Commentaire admin : " + current.validation_comment
+    commentDiv.textContent = `Commentaire admin : ${current.validation_comment}`
     commentDiv.style.display = 'block'
   } else commentDiv.style.display = 'none'
 
   const adminDiv = document.getElementById('adminActions')
   adminDiv.innerHTML = ''
   if (isAdmin && current.validation_status !== 'validated') {
-    const valBtn = document.createElement('button')
-    valBtn.textContent = 'Valider le dossier'
-    valBtn.className = 'primary success'
-    valBtn.onclick = () => validate(true)
+    const ok = document.createElement('button'); ok.textContent = 'Valider'; ok.className = 'primary success'; ok.onclick = () => validate(true)
+    const no = document.createElement('button'); no.textContent = 'Refuser'; no.className = 'primary danger'; no.onclick = () => validate(false)
+    adminDiv.append(ok, no); adminDiv.style.display = 'flex'
+  }
 
-    const refBtn = document.createElement('button')
-    refBtn.textContent = 'Refuser (commentaire)'
-    refBtn.className = 'primary danger'
-    refBtn.onclick = () => validate(false)
-
-    adminDiv.append(valBtn, refBtn)
-    adminDiv.style.display = 'flex'
-  } else adminDiv.style.display = 'none'
-
-  show('dossier')
+  showView('dossier')
 }
 
 async function validate(ok) {
   if (!ok) {
-    const reason = prompt("Raison du refus (obligatoire, min 10 caractères) :")
-    if (!reason || reason.trim().length < 10) return alert("Raison trop courte ou vide")
+    const txt = prompt("Raison du refus (minimum 10 caractères) :")
+    if (!txt || txt.trim().length < 10) return alert("Raison invalide")
     await supabase.from('dead').update({
       validation_status: 'refused',
-      validation_comment: reason.trim(),
+      validation_comment: txt.trim(),
       validated_by: user.user,
       validated_at: new Date().toISOString()
     }).eq('id', current.id)
@@ -183,35 +187,44 @@ async function validate(ok) {
   load()
 }
 
-// Enregistrement → reset auto de la validation
-document.getElementById('form').onsubmit = async e => {
+document.getElementById('editBtn').onclick = () => {
+  document.getElementById('formTitle').textContent = 'Modifier décès'
+  document.getElementById('samsName').value = current.samsName
+  document.getElementById('patientNameId').value = current.patientNameId
+  document.getElementById('date').value = current.date.slice(0,16)
+  document.getElementById('reason').value = current.reason || current.raison
+  showView('form')
+}
+
+document.getElementById('patientForm').onsubmit = async e => {
   e.preventDefault()
-  const p = {
+  const data = {
     samsName: document.getElementById('samsName').value.trim(),
-    patientID: document.getElementById('patientID').value.trim(),
+    patientNameId: document.getElementById('patientNameId').value.trim(),
     date: document.getElementById('date').value,
-    raison: document.getElementById('raison').value.trim(),
+    reason: document.getElementById('reason').value.trim(),
     validation_status: 'pending',
     validation_comment: null,
     validated_by: null,
     validated_at: null
   }
   if (current) {
-    await supabase.from('dead').update(p).eq('id', current.id)
+    await supabase.from('dead').update(data).eq('id', current.id)
   } else {
-    await supabase.from('dead').insert([p])
+    await supabase.from('dead').insert([data])
   }
-  document.getElementById('form').reset()
+  document.getElementById('patientForm').reset()
+  document.getElementById('formTitle').textContent = 'Nouveau décès'
   current = null
   load()
-  show('list')
+  showView('list')
   alert("Décès enregistré")
 }
 
-document.getElementById('clear').onclick = () => { document.getElementById('form').reset(); current = null }
-document.getElementById('search').oninput = e => render(e.target.value)
-document.getElementById('nav-list').onclick = () => show('list')
-document.getElementById('nav-new').onclick = () => { current = null; document.getElementById('form').reset(); show('new') }
+document.getElementById('clearForm').onclick = () => document.getElementById('patientForm').reset()
+document.getElementById('search').oninput = e => renderList(e.target.value)
+document.getElementById('nav-list').onclick = () => showView('list')
+document.getElementById('nav-new').onclick = () => { current = null; document.getElementById('patientForm').reset(); document.getElementById('formTitle').textContent = 'Nouveau décès'; showView('form') }
 
 load()
 </script>
