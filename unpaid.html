@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>SAMS - Impayés</title>
 <style>
-:root{--primary:#e11d48;--primary-dark:#991b1b;--border:#fecaca;--shadow:0 6px 18px rgba(225,29,72,0.08);--danger:#dc2626;--overlay:rgba(255,255,255,0.68)}
+:root{--primary:#e11d48;--primary-dark:#991b1b;--border:#fecaca;--shadow:0 6px 18px rgba(225,29,72,0.08);--danger:#dc2626;--success:#16a34a;--warning:#ea580c}
 body{font-family:Inter,system-ui;margin:0;background:url('https://i.imgur.com/A6V1lhN.jpg') no-repeat center center fixed;background-size:cover;color:#1f1f1f;position:relative;min-height:100vh}
 body::before{content:"";position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(255,255,255,0.68);backdrop-filter:blur(4px);z-index:-1}
 header{background:linear-gradient(90deg,var(--primary),var(--primary-dark));color:white;padding:16px 24px;display:flex;align-items:center;justify-content:space-between;position:relative;z-index:10}
@@ -19,25 +19,22 @@ h1{margin:0;font-size:20px;font-weight:700}
 .menu button{display:block;width:100%;text-align:left;padding:12px;border:0;background:none;border-radius:10px;margin-bottom:8px;cursor:pointer;transition:0.2s;font-weight:500}
 .menu button:hover{background:#fee2e2;color:var(--primary)}
 .menu button.active{background:var(--primary);color:white;font-weight:600}
-label{display:block;margin-top:12px;font-weight:600;font-size:14px;color:var(--primary-dark)}
-input,textarea{width:100%;padding:10px;margin-top:6px;border-radius:8px;border:1px solid var(--border);box-sizing:border-box;font-size:14px}
-input:focus,textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(225,29,72,0.15)}
-textarea{min-height:100px;resize:vertical}
-.row{display:flex;gap:12px;flex-wrap:wrap}
-.col{flex:1;min-width:200px}
-.actions{margin-top:16px;display:flex;gap:10px}
-button.primary{background:var(--primary);color:white;padding:12px 18px;border:0;border-radius:10px;cursor:pointer;font-weight:600;transition:0.2s}
-button.primary:hover{background:var(--primary-dark)}
-button.ghost{background:transparent;border:1.5px solid var(--border);padding:12px 18px;border-radius:10px;cursor:pointer;font-weight:500;transition:0.2s}
-button.ghost:hover{border-color:var(--primary);color:var(--primary);background:#fee2e2}
-.patient-item{padding:14px;border-radius:12px;border:1px solid var(--border);margin-bottom:10px;cursor:pointer;transition:0.2s;display:flex;justify-content:space-between;align-items:center}
+.patient-item{padding:14px;border-radius:12px;border:1px solid var(--border);margin-bottom:10px;cursor:pointer;transition:0.2s;display:flex;justify-content:space-between;align-items:center;position:relative}
 .patient-item:hover{background:#fee2e2;border-color:var(--primary)}
-.patient-item div{display:flex;flex-direction:column}
+.patient-item.validated{border-left:5px solid var(--success)}
+.patient-item.refused{border-left:5px solid var(--danger)}
+.patient-item.pending{border-left:5px solid var(--warning)}
+.status-badge{position:absolute;top:8px;right:8px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;color:white}
+.validated .status-badge{background:var(--success)}
+.refused .status-badge{background:var(--danger)}
+.pending .status-badge{background:var(--warning)}
 .muted{color:#6b7280;font-size:13px}
 .report{white-space:pre-wrap;background:#fffafa;padding:18px;border-radius:12px;border:1px solid var(--border);font-family:monospace;font-size:14px;line-height:1.8}
+.validation-comment{background:#fff3cd;padding:12px;border-radius:8px;border-left:4px solid #f59e0b;margin:15px 0;font-style:italic;color:#92400e}
 .search-bar{margin:12px 0;padding:10px 14px;border-radius:10px;border:1px solid var(--border);font-size:14px}
-.error{color:var(--danger);margin:10px 0;padding:12px;background:#fee;border:1px solid #fecaca;border-radius:10px;font-size:14px}
-.loading{text-align:center;color:#6b7280;padding:20px}
+.actions{margin-top:16px;display:flex;gap:10px;flex-wrap:wrap}
+button.success{background:var(--success);color:white}
+button.danger{background:var(--danger);color:white}
 </style>
 </head>
 <body>
@@ -53,7 +50,7 @@ button.ghost:hover{border-color:var(--primary);color:var(--primary);background:#
         <button id="nav-list" class="active">Liste impayés</button>
         <button id="nav-new">Nouvel impayé</button>
       </div>
-      <input type="text" id="search" class="search-bar" placeholder="Rechercher un patient...">
+      <input type="text" id="search" class="search-bar" placeholder="Rechercher...">
       <div id="list"></div>
     </aside>
     <main>
@@ -64,27 +61,18 @@ button.ghost:hover{border-color:var(--primary);color:var(--primary);background:#
       <section id="view-new" class="card" style="display:none;">
         <h2>Nouvel impayé</h2>
         <form id="form">
-          <div class="row">
-            <div class="col"><label>Prénom Nom du SAMS à rembourser</label><input type="text" id="samsName" required></div>
-            <div class="col"><label>Prénom Nom ID du patient</label><input type="text" id="patientID" required></div>
-          </div>
-          <label>Date de l'impayé</label>
-          <input type="datetime-local" id="date" required>
-          <label>Somme à rembourser</label>
-          <input type="text" id="cost" placeholder="ex: 2500" required>
-          <div id="formError" class="error" style="display:none;"></div>
-          <div class="actions">
-            <button class="primary" type="submit">Enregistrer</button>
-            <button type="button" id="clear" class="ghost">Effacer</button>
-          </div>
+          <div class="row"><div class="col"><label>SAMS à rembourser</label><input type="text" id="samsName" required></div><div class="col"><label>Patient ID</label><input type="text" id="patientID" required></div></div>
+          <label>Date</label><input type="datetime-local" id="date" required>
+          <label>Somme</label><input type="text" id="cost" placeholder="2500" required>
+          <div class="actions"><button class="primary" type="submit">Enregistrer</button></div>
         </form>
       </section>
       <section id="view-dossier" class="card" style="display:none;">
         <h2>Dossier impayé</h2>
         <div id="report" class="report"></div>
-        <div class="actions">
-          <button class="ghost" onclick="show('list')">Retour à la liste</button>
-        </div>
+        <div id="validationComment" class="validation-comment" style="display:none;"></div>
+        <div id="adminActions" class="actions" style="display:none;"></div>
+        <div class="actions"><button class="ghost" onclick="show('list')">Retour</button></div>
       </section>
     </main>
   </div>
@@ -92,17 +80,11 @@ button.ghost:hover{border-color:var(--primary);color:var(--primary);background:#
 
 <script type="module">
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
-
-const SUPABASE_URL = "https://sevrfgivcpefyykuffti.supabase.co"
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNldnJmZ2l2Y3BlZnl5a3VmZnRpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI5NDI1NTMsImV4cCI6MjA3ODUxODU1M30.YZnkSHsVWKQEhfU7xYfWyTFmtkM28Zuzdu7Y1sjBXQc"
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY)
+const supabase = createClient("https://sevrfgivcpefyykuffti.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNldnJmZ2l2Y3BlZnl5a3VmZnRpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI5NDI1NTMsImV4cCI6MjA3ODUxODU1M30.YZnkSHsVWKQEhfU7xYfWyTFmtkM28Zuzdu7Y1sjBXQc")
 
 if (!localStorage.getItem('sams_user')) window.location.href = 'login.html'
 const user = JSON.parse(localStorage.getItem('sams_user'))
-
-async function logAction(action, details) {
-  await supabase.from('logs').insert({ user_id: user.id, username: user.user, action, target: 'impayé', details }).catch(()=>{})
-}
+const isAdmin = user.permission === 'admin'
 
 let items = [], current = null
 const views = { list: document.getElementById('view-list'), new: document.getElementById('view-new'), dossier: document.getElementById('view-dossier') }
@@ -115,48 +97,60 @@ function show(v) {
 }
 
 async function load() {
-  try {
-    const { data, error } = await supabase.from('unpaid').select('*').order('id', { ascending: false })
-    if (error) throw error
-    items = data || []
-    render()
-    document.querySelector('.loading')?.remove()
-  } catch (err) {
-    document.getElementById('listContent').innerHTML = `<div class="error">Erreur: ${err.message}</div>`
-  }
+  const { data } = await supabase.from('unpaid').select('*').order('id', { ascending: false })
+  items = data || []
+  render()
+  document.querySelector('.loading')?.remove()
 }
 
 function render(filter = "") {
   const f = items.filter(i => (i.patientID || '').toLowerCase().includes(filter.toLowerCase()))
-  document.getElementById('list').innerHTML = f.map(i => `
-    <div class="patient-item" onclick="openDossier(${i.id})">
-      <div>
-        <strong>${i.patientID}</strong>
-        <div class="muted">${i.cost}$</div>
-      </div>
-    </div>
-  `).join('')
-
-  document.getElementById('listContent').innerHTML = f.length ? f.map(i => `
-    <div class="patient-item" onclick="openDossier(${i.id})">
-      <div>
-        <strong>${i.patientID}</strong>
-        <div class="muted">${new Date(i.date).toLocaleString('fr-FR')} • ${i.cost}$</div>
-      </div>
-    </div>
-  `).join('') : '<div class="muted">Aucun impayé</div>'
+  const html = f.map(i => {
+    const status = i.validation_status || 'pending'
+    const badge = status === 'validated' ? 'Validé' : status === 'refused' ? 'Refusé' : 'En attente'
+    return `<div class="patient-item ${status}" onclick="openDossier(${i.id})">
+      <div><strong>${i.patientID}</strong><div class="muted">${i.cost}$ • ${new Date(i.date).toLocaleDateString()}</div></div>
+      <span class="status-badge">${badge}</span>
+    </div>`
+  }).join('')
+  document.getElementById('list').innerHTML = html
+  document.getElementById('listContent').innerHTML = html || '<div class="muted">Aucun impayé</div>'
 }
 
-// FONCTION CORRIGÉE
 window.openDossier = (id) => {
   current = items.find(x => x.id === id)
-  if (!current) return
   document.getElementById('report').textContent = 
-`Prénom Nom du SAMS à rembourser : ${current.samsName}
-Prénom Nom ID du patient : ${current.patientID}
-Date de l'impayé : ${new Date(current.date).toLocaleString('fr-FR')}
-Somme à rembourser : ${current.cost}$`.trim()
+`SAMS à rembourser : ${current.samsName}
+Patient : ${current.patientID}
+Date : ${new Date(current.date).toLocaleString('fr-FR')}
+Somme : ${current.cost}$`
+
+  const commentDiv = document.getElementById('validationComment')
+  if (current.validation_status === 'refused' && current.validation_comment) {
+    commentDiv.textContent = "Commentaire admin : " + current.validation_comment
+    commentDiv.style.display = 'block'
+  } else commentDiv.style.display = 'none'
+
+  const adminDiv = document.getElementById('adminActions')
+  adminDiv.innerHTML = ''
+  if (isAdmin && current.validation_status !== 'validated') {
+    const valBtn = document.createElement('button'); valBtn.textContent = 'Valider'; valBtn.className = 'primary success'; valBtn.onclick = () => validate(true)
+    const refBtn = document.createElement('button'); refBtn.textContent = 'Refuser'; refBtn.className = 'primary danger'; refBtn.onclick = () => validate(false)
+    adminDiv.append(valBtn, refBtn); adminDiv.style.display = 'flex'
+  } else adminDiv.style.display = 'none'
+
   show('dossier')
+}
+
+async function validate(ok) {
+  if (!ok) {
+    const reason = prompt("Raison du refus (obligatoire) :")
+    if (!reason || reason.trim().length < 10) return alert("Raison trop courte")
+    await supabase.from('unpaid').update({ validation_status: 'refused', validation_comment: reason.trim(), validated_by: user.user, validated_at: new Date().toISOString() }).eq('id', current.id)
+  } else {
+    await supabase.from('unpaid').update({ validation_status: 'validated', validation_comment: null, validated_by: user.user, validated_at: new Date().toISOString() }).eq('id', current.id)
+  }
+  load()
 }
 
 document.getElementById('form').onsubmit = async e => {
@@ -165,32 +159,26 @@ document.getElementById('form').onsubmit = async e => {
     samsName: document.getElementById('samsName').value.trim(),
     patientID: document.getElementById('patientID').value.trim(),
     date: document.getElementById('date').value,
-    cost: document.getElementById('cost').value.trim()
+    cost: document.getElementById('cost').value.trim(),
+    validation_status: 'pending',
+    validation_comment: null,
+    validated_by: null,
+    validated_at: null
   }
-  try {
-    if (current) {
-      await supabase.from('unpaid').update(p).eq('id', current.id)
-      await logAction('update', `Impayé ID: ${current.id}`)
-    } else {
-      const { data } = await supabase.from('unpaid').insert([p]).select()
-      await logAction('create', `Impayé ID: ${data[0].id}`)
-    }
-    current = null
-    document.getElementById('form').reset()
-    await load()
-    show('list')
-    alert("Impayé enregistré")
-  } catch (err) {
-    document.getElementById('formError').textContent = err.message
-    document.getElementById('formError').style.display = 'block'
+  if (current) {
+    await supabase.from('unpaid').update(p).eq('id', current.id)
+  } else {
+    await supabase.from('unpaid').insert([p])
   }
+  document.getElementById('form').reset()
+  current = null
+  load()
+  show('list')
 }
 
-document.getElementById('clear').onclick = () => { document.getElementById('form').reset(); current = null }
 document.getElementById('search').oninput = e => render(e.target.value)
 document.getElementById('nav-list').onclick = () => show('list')
 document.getElementById('nav-new').onclick = () => { current = null; document.getElementById('form').reset(); show('new') }
-
 load()
 </script>
 </body>
