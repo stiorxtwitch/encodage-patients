@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>SAMS - Tarifs & Codes Radio</title>
+<title>SAMS - Tarifs & Procédures</title>
 <style>
 :root{--primary:#e11d48;--primary-dark:#991b1b;--border:#fecaca;--shadow:0 6px 18px rgba(225,29,72,0.08);--danger:#dc2626}
 body{font-family:Inter,system-ui;margin:0;background:url('https://i.imgur.com/A6V1lhN.jpg') no-repeat center center fixed;background-size:cover;color:#1f1f1f;min-height:100vh}
@@ -13,22 +13,27 @@ header img{height:58px;border-radius:14px;box-shadow:0 3px 10px rgba(0,0,0,0.2)}
 h1{margin:0;font-size:20px;font-weight:700}
 .back-btn{background:#dc2626;color:white;padding:8px 16px;border-radius:8px;font-size:14px;cursor:pointer;border:none;transition:0.2s}
 .back-btn:hover{background:#b91c1c}
-.container{max-width:1100px;margin:40px auto;padding:20px}
+.container{max-width:1200px;margin:40px auto;padding:20px}
 .card{background:rgba(255,255,255,0.94);padding:32px;border-radius:16px;box-shadow:var(--shadow);border:1px solid var(--border);backdrop-filter:blur(12px);margin-bottom:32px}
 h2{color:var(--primary-dark);border-bottom:3px solid var(--primary);padding-bottom:8px;margin-bottom:24px;font-size:24px}
 table{width:100%;border-collapse:collapse;margin:20px 0}
 th,td{padding:14px 12px;border-bottom:1px solid #eee;text-align:left;vertical-align:top}
-th{background:var(--primary-light);color:var(--primary-dark);font-weight:600}
-tr:hover{background:#fff5f5}
-.code{font-weight:bold;color:var(--primary-dark)}
-.freq{color:#16a34a;font-weight:bold}
-pre{font-family:monospace;background:#1f1f1f;color:#f0f0f0;padding:20px;border-radius:12px;overflow-x:auto;font-size:15px;line-height:1.6}
+th{background:#fee2e2;color:var(--primary-dark);font-weight:600}
+tr:hover{background:#fff5f5;cursor:pointer}
+tr.clickable:hover td:first-child{font-weight:600;color:var(--primary-dark)}
+/* POPUP */
+.modal{background:rgba(0,0,0,0.6);position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:9999;opacity:0;visibility:hidden;transition:0.3s}
+.modal.active{opacity:1;visibility:visible}
+.modal-content{background:white;max-width:600px;width:90%;max-height:80vh;overflow-y:auto;padding:30px;border-radius:16px;box-shadow:0 10px 40px rgba(0,0,0,0.3);position:relative}
+.close-btn{position:absolute;top:12px;right:16px;background:var(--danger);color:white;width:36px;height:36px;border-radius:50%;border:none;font-size:20px;cursor:pointer}
+.procedure{font-size:15px;line-height:1.8}
+.procedure li{margin:8px 0}
 </style>
 </head>
 <body>
 <header>
   <img src="https://i.imgur.com/N1tQTgU.png" alt="SAMS">
-  <h1>SAMS - Tarifs & Codes Radio</h1>
+  <h1>SAMS - Tarifs & Procédures</h1>
   <a href="index.html" class="back-btn">Retour</a>
 </header>
 
@@ -36,37 +41,122 @@ pre{font-family:monospace;background:#1f1f1f;color:#f0f0f0;padding:20px;border-r
 
   <!-- SECTION TARIFS -->
   <div class="card">
-    <h2>Tarifs des prestations SAMS</h2>
-    <table>
+    <h2>Tarifs & Procédures de soin</h2>
+    <p style="margin-bottom:20px;color:#6b7280">Cliquez sur une ligne pour voir le procédé de soin recommandé</p>
+    <table id="tarifsTable">
       <thead>
         <tr>
-          <th>Type de prestation</th>
-          <th>Exemple / Description</th>
+          <th>Prestation</th>
+          <th>Description</th>
           <th>Prix</th>
         </tr>
       </thead>
       <tbody>
-        <tr><td>Blessures légères</td><td>Petite coupure / hématome / brûlure légère</td><td>1 000 $</td></tr>
-        <tr><td>Blessures moyennes</td><td>Entorse / Fracture simple / coupure importante</td><td>2 500 $</td></tr>
-        <tr><td>Blessures graves</td><td>Fracture multiple / blessure par balle / AVC</td><td>5 000 $</td></tr>
-        <tr><td>Radio / IRM / Scanner</td><td>Imagerie médicale</td><td>500 $ / unité</td></tr>
-        <tr><td>Béquilles / Fauteuil roulant / Attelle / Minerve</td><td>Bloquer un membre / articulation</td><td>2 000 $ / unité</td></tr>
-        <tr><td>Réanimation</td><td>Intervention de réanimation</td><td>5 000 $</td></tr>
-        <tr><td>Objets pharmaceutiques</td><td>Médicaments, pansements</td><td>1 500 $ / unité</td></tr>
-        <tr><td>RDV psychologique</td><td>Consultation psychologique</td><td>10 000 $ / séance</td></tr>
-        <tr><td>RDV psychologique - PPAL</td><td>Consultation – Permis de Port d’Armes Lourdes</td><td>30 000 $</td></tr>
-        <tr><td>Chambre privée</td><td>Repos en chambre privée</td><td>10 000 $</td></tr>
-        <tr><td>RDV Médical</td><td>Grossesse, ORL, Ophtalmologue…</td><td>2 500 $ / séance</td></tr>
-        <tr><td>Examens médicaux en laboratoire</td><td>Analyses en laboratoire</td><td>2 500 $</td></tr>
-        <tr><td>Accouchement</td><td>Par voie basse ou césarienne</td><td>10 000 $</td></tr>
-        <tr><td>Chirurgie plastique [Légère]</td><td>1 partie du corps</td><td>200 000 $</td></tr>
-        <tr><td>Chirurgie plastique [Moyenne]</td><td>2 à 3 parties du corps</td><td>500 000 $</td></tr>
-        <tr><td>Chirurgie plastique [Lourde]</td><td>4 parties du corps et plus</td><td>750 000 $</td></tr>
-        <tr><td>Prothèse (tous types)</td><td>Remplacer une partie du corps</td><td>10 000 $ / prothèse</td></tr>
-        <tr><td>Soins de suite et de réadaptation – SSR</td><td>Séance de rééducation musculaire ou autre</td><td>5 000 $ / séance</td></tr>
-        <tr><td>Transplantation d’organes</td><td>Nécessite un transport d’organe pré-opération</td><td>50 000 $ / organe</td></tr>
-        <tr><td>Greffe de peaux [Légère]</td><td>1 à 3 partie(s) du corps</td><td>7 500 $</td></tr>
-        <tr><td>Greffe de peaux [Lourde]</td><td>Plus de 4 parties du corps</td><td>10 000 $</td></tr>
+        <tr class="clickable" data-title="Blessures légères">
+          <td>Blessures légères</td>
+          <td>Petite coupure / hématome / brûlure légère</td>
+          <td>1 000 $</td>
+        </tr>
+        <tr class="clickable" data-title="Blessures moyennes">
+          <td>Blessures moyennes</td>
+          <td>Entorse / Fracture simple / coupure importante</td>
+          <td>2 500 $</td>
+        </tr>
+        <tr class="clickable" data-title="Blessures graves">
+          <td>Blessures graves</td>
+          <td>Fracture multiple / blessure par balle / AVC</td>
+          <td>5 000 $</td>
+        </tr>
+        <tr class="clickable" data-title="Radio / IRM / Scanner">
+          <td>Radio / IRM / Scanner</td>
+          <td>Imagerie médicale</td>
+          <td>500 $ / unité</td>
+        </tr>
+        <tr class="clickable" data-title="Béquilles / Fauteuil / Attelle / Minerve">
+          <td>Béquilles / Fauteuil roulant / Attelle / Minerve</td>
+          <td>Bloquer un membre / articulation</td>
+          <td>2 000 $ / unité</td>
+        </tr>
+        <tr class="clickable" data-title="Réanimation">
+          <td>Réanimation</td>
+          <td>Intervention de réanimation</td>
+          <td>5 000 $</td>
+        </tr>
+        <tr class="clickable" data-title="Objets pharmaceutiques">
+          <td>Objets pharmaceutiques</td>
+          <td>Médicaments, pansements</td>
+          <td>1 500 $ / unité</td>
+        </tr>
+        <tr class="clickable" data-title="RDV psychologique">
+          <td>RDV psychologique</td>
+          <td>Consultation psychologique</td>
+          <td>10 000 $ / séance</td>
+        </tr>
+        <tr class="clickable" data-title="RDV psychologique – PPAL">
+          <td>RDV psychologique – PPAL</td>
+          <td>Permis de Port d’Armes Lourdes</td>
+          <td>30 000 $</td>
+        </tr>
+        <tr class="clickable" data-title="Chambre privée">
+          <td>Chambre privée</td>
+          <td>Repos en chambre privée</td>
+          <td>10 000 $</td>
+        </tr>
+        <tr class="clickable" data-title="RDV médical">
+          <td>RDV médical</td>
+          <td>Grossesse, ORL, Ophtalmologue…</td>
+          <td>2 500 $ / séance</td>
+        </tr>
+        <tr class="clickable" data-title="Examens en laboratoire">
+          <td>Examens médicaux en laboratoire</td>
+          <td>Analyses en laboratoire</td>
+          <td>2 500 $</td>
+        </tr>
+        <tr class="clickable" data-title="Accouchement">
+          <td>Accouchement</td>
+          <td>Par voie basse ou césarienne</td>
+          <td>10 000 $</td>
+        </tr>
+        <tr class="clickable" data-title="Chirurgie plastique [Légère]">
+          <td>Chirurgie plastique [Légère]</td>
+          <td>1 partie du corps</td>
+          <td>200 000 $</td>
+        </tr>
+        <tr class="clickable" data-title="Chirurgie plastique [Moyenne]">
+          <td>Chirurgie plastique [Moyenne]</td>
+          <td>2 à 3 parties du corps</td>
+          <td>500 000 $</td>
+        </tr>
+        <tr class="clickable" data-title="Chirurgie plastique [Lourde]">
+          <td>Chirurgie plastique [Lourde]</td>
+          <td>4 parties du corps et plus</td>
+          <td>750 000 $</td>
+        </tr>
+        <tr class="clickable" data-title="Prothèse">
+          <td>Prothèse (tous types)</td>
+          <td>Remplacer une partie du corps</td>
+          <td>10 000 $ / prothèse</td>
+        </tr>
+        <tr class="clickable" data-title="Soins SSR">
+          <td>Soins de suite et de réadaptation – SSR</td>
+          <td>Séance de rééducation</td>
+          <td>5 000 $ / séance</td>
+        </tr>
+        <tr class="clickable" data-title="Transplantation d’organes">
+          <td>Transplantation d’organes</td>
+          <td>Transport d’organe pré-opération</td>
+          <td>50 000 $ / organe</td>
+        </tr>
+        <tr class="clickable" data-title="Greffe de peaux [Légère]">
+          <td>Greffe de peaux [Légère]</td>
+          <td>1 à 3 partie(s) du corps</td>
+          <td>7 500 $</td>
+        </tr>
+        <tr class="clickable" data-title="Greffe de peaux [Lourde]">
+          <td>Greffe de peaux [Lourde]</td>
+          <td>Plus de 4 parties du corps</td>
+          <td>10 000 $</td>
+        </tr>
       </tbody>
     </table>
   </div>
@@ -74,32 +164,170 @@ pre{font-family:monospace;background:#1f1f1f;color:#f0f0f0;padding:20px;border-r
   <!-- SECTION CODES RADIO -->
   <div class="card">
     <h2>Codes Radio SAMS</h2>
-    <pre>
+    <pre style="background:#1f1f1f;color:#f0f0f0;padding:20px;border-radius:12px;overflow-x:auto;font-size:14px">
 ↓ LES CODES RADIO AU SEIN DE LA SAMS ↓
 
-<span class="code">10-04</span>  Message reçu / Affirmatif.
-<span class="code">10-05</span>  Négatif.
-<span class="code">10-07</span>  Prise de service.
-<span class="code">10-08</span>  Fin de service.
-<span class="code">10-17</span>  En route vers Intervention (préciser le lieu-dit)
-<span class="code">10-18</span>  Retour Hôpital avec victime à bord du véhicule
-<span class="code">10-19</span>  Retour Hôpital (Sans victime)
-<span class="code">10-23</span>  Arrivé sur les lieux, Radio en Stand-By jusqu'au prochain message.
-<span class="code">10-24</span>  Renforts demandé (préciser le lieu-dit).
-<span class="code">10-27</span>  En route vers Intervention en PH (préciser le lieu-dit)
-<span class="code">10-28</span>  Retour Hôpital avec victime en PH + besoin de quelqu'un sur le toit
-<span class="code">10-29</span>  Retour Hôpital sans victime en PH (Faire attention à toute sortie de PH)
-<span class="code">10-41</span>  Début de Patrouille
-<span class="code">10-42</span>  Fin de Patrouille
-<span class="code">10-99</span>  Communication Radio Prioritaire/Constante.
-<span class="code">10-1000</span> Victime Décédée
+10-04  Message reçu / Affirmatif.
+10-05  Négatif.
+10-07  Prise de service.
+10-08  Fin de service.
+10-17  En route vers Intervention (préciser le lieu-dit)
+10-18  Retour Hôpital avec victime à bord
+10-19  Retour Hôpital (Sans victime)
+10-23  Arrivé sur les lieux → Stand-By
+10-24  Renforts demandé
+10-27  En route en PH
+10-28  Retour Hôpital avec victime en PH
+10-29  Retour Hôpital sans victime en PH
+10-41  Début de Patrouille
+10-42  Fin de Patrouille
+10-99  Communication Prioritaire
+10-1000 Victime Décédée
 
-Liste des fréquences radio utilisées par la SAMS :
-Fréquence <span class="freq">Patrouille Nord/Sud</span> : 112
-Fréquence <span class="freq">Évènement/Opération</span> : 110
+Fréquences :
+Patrouille Nord/Sud → 112
+Évènement/Opération → 110
     </pre>
   </div>
-
 </div>
+
+<!-- MODAL POPUP -->
+<div id="modal" class="modal">
+  <div class="modal-content">
+    <button class="close-btn" onclick="closeModal()">X</button>
+    <h2 id="modalTitle" style="color:var(--primary);margin-top:0"></h2>
+    <div id="modalProcedure" class="procedure"></div>
+  </div>
+</div>
+
+<script>
+// Base de données des procédures
+const procedures = {
+  "Blessures légères": [
+    "Nettoyer doucement la zone blessée.",
+    "Vérifier l’absence d’autres dommages.",
+    "Appliquer un pansement simple et surveiller."
+  ],
+  "Blessures moyennes": [
+    "Stabiliser la zone concernée.",
+    "Nettoyer et protéger la blessure.",
+    "Préparer un soin plus approfondi (attelle, immobilisation légère)."
+  ],
+  "Blessures graves": [
+    "Évaluer rapidement la situation générale.",
+    "Stabiliser la personne et empêcher l’aggravation.",
+    "Préparer un transfert vers un service spécialisé dans les cas critiques."
+  ],
+  "Radio / IRM / Scanner": [
+    "Installer confortablement la personne.",
+    "Positionner correctement pour obtenir une image nette.",
+    "Effectuer l’imagerie et transmettre les résultats au personnel compétent."
+  ],
+  "Béquilles / Fauteuil / Attelle / Minerve": [
+    "Choisir l’appareil adapté à la blessure.",
+    "Ajuster et fixer correctement.",
+    "Montrer comment l’utiliser pour limiter les efforts."
+  ],
+  "Réanimation": [
+    "Analyser rapidement l’état vital.",
+    "Mettre en place les gestes d’urgence adaptés au protocole fictif.",
+    "Stabiliser avant un transfert en urgence."
+  ],
+  "Objets pharmaceutiques": [
+    "Identifier le besoin (douleur, infection, protection).",
+    "Donner le matériel adapté (pansements, désinfectants, etc.).",
+    "Expliquer comment l’utiliser correctement dans le cadre fictif."
+  ],
+  "RDV psychologique": [
+    "Écouter la personne dans un cadre calme.",
+    "Identifier les sources de stress ou de tension.",
+    "Proposer un accompagnement adapté."
+  ],
+  "RDV psychologique – PPAL": [
+    "Évaluer l’équilibre émotionnel du patient.",
+    "Vérifier qu’il répond aux critères imaginaires du permis spécial.",
+    "Finaliser le dossier administratif fictif."
+  ],
+  "Chambre privée": [
+    "Accueillir le patient dans un environnement isolé.",
+    "Réaliser un suivi régulier.",
+    "Favoriser le repos et la récupération."
+  ],
+  "RDV médical": [
+    "Recueillir les symptômes ou plaintes.",
+    "Réaliser un examen d’observation.",
+    "Proposer une orientation ou un traitement fictif."
+  ],
+  "Examens en laboratoire": [
+    "Préparer le prélèvement (sang, urine, etc.).",
+    "Lire et analyser les résultats dans le cadre fictif.",
+    "Rendre un compte-rendu simplifié."
+  ],
+  "Accouchement": [
+    "Installer la mère dans un environnement calme.",
+    "Accompagner le déroulement naturel ou préparer un acte plus encadré.",
+    "S’assurer du bien-être de la mère et de l’enfant après la naissance."
+  ],
+  "Chirurgie plastique [Légère]": [
+    "Définir la zone à modifier.",
+    "Préparer l’environnement stérile fictif.",
+    "Réaliser une intervention mineure d’amélioration visuelle."
+  ],
+  "Chirurgie plastique [Moyenne]": [
+    "Analyser les zones multiples à traiter.",
+    "Planifier l’intervention fictive.",
+    "Prendre en charge la récupération esthétique."
+  ],
+  "Chirurgie plastique [Lourde]": [
+    "Établir un plan global de transformation.",
+    "Coordonner une équipe complète.",
+    "Effectuer un suivi prolongé après l’opération."
+  ],
+  "Prothèse": [
+    "Évaluer la zone à remplacer.",
+    "Préparer et ajuster la prothèse.",
+    "Assurer une adaptation et un accompagnement à son utilisation."
+  ],
+  "Soins SSR": [
+    "Établir un programme de récupération fictif.",
+    "Encadrer des exercices adaptés.",
+    "Suivre les progrès du patient."
+  ],
+  "Transplantation d’organes": [
+    "Préparer la réception de l’organe imaginaire.",
+    "Assurer la coordination entre les équipes.",
+    "Suivre l’intégration de l’organe dans un cadre fictif."
+  ],
+  "Greffe de peaux [Légère]": [
+    "Identifier les zones nécessitant une amélioration.",
+    "Préparer une greffe fictive simple.",
+    "Surveiller la bonne adaptation de la peau."
+  ],
+  "Greffe de peaux [Lourde]": [
+    "Évaluer les zones étendues touchées.",
+    "Réaliser une greffe complexe fictive.",
+    "Assurer un suivi prolongé."
+  ]
+};
+
+// Ouvrir la popup
+document.querySelectorAll('tr.clickable').forEach(row => {
+  row.addEventListener('click', () => {
+    const title = row.dataset.title
+    document.getElementById('modalTitle').textContent = title
+    const list = procedures[title]
+    document.getElementById('modalProcedure').innerHTML = '<ul>' + list.map(item => `<li>${item}</li>`).join('') + '</ul>'
+    document.getElementById('modal').classList.add('active')
+  })
+})
+
+// Fermer la popup
+function closeModal() {
+  document.getElementById('modal').classList.remove('active')
+}
+document.getElementById('modal').addEventListener('click', e => {
+  if (e.target === document.getElementById('modal')) closeModal()
+})
+</script>
 </body>
 </html>
