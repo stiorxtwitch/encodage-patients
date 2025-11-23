@@ -55,9 +55,10 @@ button.danger:hover{background:rgba(220,38,38,0.05)}
   <div class="grid">
     <aside class="card">
       <div class="menu">
-        <!-- NOUVEAUX BOUTONS AJOUTÉS -->
+        <!-- NOUVEAUX BOUTONS -->
         <button id="nav-clockin">Prise de service</button>
         <button id="nav-profile">Mon profil</button>
+        <button id="nav-tarifs">Tarifs & Codes Radio</button>
         <hr style="margin:16px 0; border:none; border-top:1px solid #fecaca;">
         <button id="nav-list" class="active">Liste patients</button>
         <button id="nav-new">Nouveau patient</button>
@@ -143,14 +144,15 @@ if (user.permission === 'admin') {
   menu.insertBefore(adminBtn, menu.firstChild)
 }
 
-// === LIENS VERS LES NOUVELLES PAGES ===
+// === TOUS LES LIENS ===
 document.getElementById('nav-clockin').onclick = () => window.location.href = 'clockin.html'
 document.getElementById('nav-profile').onclick = () => window.location.href = 'profile.html'
-document.getElementById('nav-denied').onclick = () => window.location.href = 'denied.html'
-document.getElementById('nav-dead').onclick = () => window.location.href = 'dead.html'
-document.getElementById('nav-unpaid').onclick = () => window.location.href = 'unpaid.html'
+document.getElementById('nav-tarifs').onclick  = () => window.location.href = 'tarifs.html'   // ← NOUVEAU
+document.getElementById('nav-denied').onclick  = () => window.location.href = 'denied.html'
+document.getElementById('nav-dead').onclick    = () => window.location.href = 'dead.html'
+document.getElementById('nav-unpaid').onclick  = () => window.location.href = 'unpaid.html'
 
-// === TOUT TON CODE ORIGINAL (patients, factures, logs, etc.) ===
+// === TOUT LE RESTE DE TON CODE (patients, factures, logs, etc.) ===
 async function logAction(action, target, details) {
   await supabase.from('logs').insert({ user_id: user.id, username: user.user, action, target, details })
 }
