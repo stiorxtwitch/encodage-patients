@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>SAMS - Gestion Patients</title>
+<title>Medical Component - Gestion Patients</title>
 <style>
 :root{--primary:#e11d48;--primary-light:#fee2e2;--primary-dark:#991b1b;--border:#fecaca;--shadow:0 6px 18px rgba(225,29,72,0.08);--danger:#dc2626;--success:#16a34a;--warning:#ea580c}
 body{font-family:Inter,system-ui;margin:0;background:url('https://i.imgur.com/A6V1lhN.jpg') no-repeat center center fixed;background-size:cover;color:#1f1f1f;position:relative;min-height:100vh}
@@ -55,8 +55,8 @@ button.ghost:hover{border-color:var(--primary);color:var(--primary);background:v
 </head>
 <body>
 <header>
-  <img src="https://i.imgur.com/N1tQTgU.png" alt="SAMS">
-  <h1>SAMS - Gestion Patients</h1>
+  <img src="https://i.imgur.com/nsJi2ZA.jpeg" alt="SAMS">
+  <h1>Medical Component - Gestion Patients</h1>
   <button id="logoutBtn" class="logout-btn">Déconnexion</button>
 </header>
 <div class="container">
@@ -79,13 +79,13 @@ button.ghost:hover{border-color:var(--primary);color:var(--primary);background:v
     <main>
       <section id="view-list" class="card">
         <h2>Liste des patients</h2>
-        <div id="listContent"><div class="loading">Connexion à Supabase...</div></div>
+        <div id="listContent"><div class="loading">Connexion à la base de donnée..</div></div>
       </section>
       <section id="view-new" class="card" style="display:none;">
         <h2 id="formTitle">Nouveau patient</h2>
         <form id="patientForm">
           <div class="row">
-            <div class="col"><label>Prénom Nom du SAMS</label><input type="text" id="samsName" required></div>
+            <div class="col"><label>Prénom Nom du MEDIC</label><input type="text" id="samsName" required></div>
             <div class="col"><label>Prénom Nom ID du patient</label><input type="text" id="patientNameId" placeholder="ex: Jean Dupont #001" required></div>
           </div>
           <div class="row">
@@ -204,7 +204,7 @@ function renderDossier() {
   const status = c.validation_status || 'pending'
   const comment = c.validation_comment ? `Commentaire admin : ${c.validation_comment}` : ''
 
-  document.getElementById('rapportContent').textContent = `Prénom Nom du SAMS : ${c.samsName || ''}\nPrénom Nom ID du patient : ${c.patientNameId || ''}\nDate de naissance : ${c.dob || ''}\nProfession : ${c.profession || ''}\nAntécédents médicaux : ${c.antecedents || ''}\nRécapitulatif des blessures : ${c.blessures || ''}\nRaison de l’hospitalisation : ${c.raison || ''}\nExamens : ${c.examens || ''}\n${created}\n${invoice}\nCoût total : ${c.totalCost || 0}$${recap}`
+  document.getElementById('rapportContent').textContent = `Prénom Nom du MEDIC : ${c.samsName || ''}\nPrénom Nom ID du patient : ${c.patientNameId || ''}\nDate de naissance : ${c.dob || ''}\nProfession : ${c.profession || ''}\nAntécédents médicaux : ${c.antecedents || ''}\nRécapitulatif des blessures : ${c.blessures || ''}\nRaison de l’hospitalisation : ${c.raison || ''}\nExamens : ${c.examens || ''}\n${created}\n${invoice}\nCoût total : ${c.totalCost || 0}$${recap}`
 
   const commentDiv = document.getElementById('validationComment')
   if (status === 'refused' && comment) {
@@ -347,5 +347,6 @@ loadPatients()
 </script>
 </body>
 </html>
+
 
 
