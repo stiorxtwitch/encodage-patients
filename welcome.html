@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>SAMS - Bienvenue</title>
+  <style>
+    :root {
+      --primary: #e11d48;
+      --bg: #f8f9fa;
+      --card: #fff;
+      --shadow: 0 8px 25px rgba(0,0,0,0.1);
+    }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: Inter, system-ui, sans-serif;
+      background: linear-gradient(135deg, #e11d48, #c2185b);
+      color: #1f1f1f;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .card {
+      background: var(--card);
+      padding: 60px 40px;
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      width: 100%;
+      max-width: 460px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .logo {
+      width: 100px;
+      height: 100px;
+      margin: 0 auto 24px;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      opacity: 0;
+      transform: scale(0.7);
+      transition: all 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .welcome-container {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: all 0.9s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    h1 {
+      font-size: 32px;
+      margin-bottom: 12px;
+      color: #991b1b;
+      font-weight: 700;
+    }
+    .username {
+      font-size: 28px;
+      font-weight: 600;
+      color: var(--primary);
+      margin-bottom: 40px;
+    }
+    /* Loading style – cercle qui pulse en rouge */
+    .loading-container {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+      margin-top: 40px;
+    }
+    .spinner {
+      width: 80px;
+      height: 80px;
+      position: relative;
+    }
+    .spinner::before,
+    .spinner::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background: var(--primary);
+      opacity: 0.4;
+      animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    .spinner::after {
+      animation-delay: -1s;
+      opacity: 0.6;
+      transform: scale(0.85);
+    }
+    .spinner-inner {
+      position: absolute;
+      inset: 8px;
+      border-radius: 50%;
+      background: white;
+      box-shadow: inset 0 0 12px rgba(0,0,0,0.15);
+      z-index: 1;
+    }
+    .loading-text {
+      color: #666;
+      font-size: 15px;
+      font-weight: 500;
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        transform: scale(0.5);
+        opacity: 0.3;
+      }
+      50% {
+        transform: scale(1.15);
+        opacity: 0.9;
+      }
+    }
+
+    /* Classes pour l'animation d'entrée */
+    .card.loaded .logo {
+      opacity: 1;
+      transform: scale(1);
+    }
+    .card.loaded .welcome-container {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+<div class="card" id="welcomeCard">
+  <img src="https://i.imgur.com/c9Upe50.png" alt="SAMS" class="logo">
+  
+  <div class="welcome-container">
+    <h1>Bienvenue</h1>
+    <div class="username" id="usernameDisplay"></div>
+  </div>
+
+  <div class="loading-container" id="loading">
+    <div class="spinner">
+      <div class="spinner-inner"></div>
+    </div>
+    <div class="loading-text">Préparation du système...</div>
+  </div>
+</div>
+
+<script>
+  // Récupère le nom d'utilisateur depuis localStorage (comme dans ton login)
+  const samsUser = JSON.parse(localStorage.getItem('sams_user') || '{}');
+  const username = samsUser.user || "Médecin";
+
+  document.getElementById('usernameDisplay').textContent = username;
+
+  // Lancement progressif de l'animation
+  setTimeout(() => {
+    document.getElementById('welcomeCard').classList.add('loaded');
+  }, 300);
+
+  // Après ~4–4.5 secondes d'animation bienvenue → on passe au loading
+  setTimeout(() => {
+    document.querySelector('.welcome-container').style.opacity = '0';
+    document.querySelector('.welcome-container').style.transform = 'translateY(-20px)';
+    
+    setTimeout(() => {
+      document.querySelector('.welcome-container').style.display = 'none';
+      document.getElementById('loading').style.display = 'flex';
+    }, 600);
+  }, 4200);
+
+  // Redirection finale après 3 secondes de loading
+  setTimeout(() => {
+    window.location.href = 'index.html';
+  }, 4200 + 3000);
+</script>
+
+</body>
+</html>
