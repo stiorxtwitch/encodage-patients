@@ -3,83 +3,85 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>SAMS - Connexion</title>
+<title>CHL - Connexion</title>
 <style>
 :root{--primary:#e11d48;--bg:#f8f9fa;--card:#fff;--shadow:0 8px 25px rgba(0,0,0,0.1)}
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:Inter,system-ui;background:linear-gradient(135deg,#e11d48,#c2185b);color:#1f1f1f;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
 .card{background:var(--card);padding:40px 32px;border-radius:18px;box-shadow:var(--shadow);width:100%;max-width:400px;text-align:center}
-.logo{width:120px;height:120px;margin:0 auto 20px;border-radius:16px;box-shadow:0 4px 12px rgba(0,0,0,0.15)}
-h1{font-size:24px;margin-bottom:8px;color:#991b1b}
+.logo{width:120px;height:120px;margin:0 auto 20px;border-radius:16px;box-shadow:0 4px 12px rgba(0,0,0,0.15);object-fit:contain}
+h1{font-size:22px;margin-bottom:4px;color:#991b1b}
+.subtitle{color:#444;font-size:13px;font-weight:600;margin-bottom:4px}
 p{color:#666;margin-bottom:24px;font-size:14px}
 input{width:100%;padding:14px;margin:10px 0;border:1.5px solid #ddd;border-radius:10px;font-size:15px;transition:0.2s}
 input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(225,29,72,0.15)}
 button{width:100%;padding:14px;background:var(--primary);color:white;border:none;border-radius:10px;font-weight:600;font-size:15px;cursor:pointer;transition:0.2s;margin-top:10px}
 button:hover{background:#991b1b}
 .error{color:#dc2626;background:#fee;border:1px solid #fecaca;padding:12px;border-radius:8px;margin:12px 0;font-size:14px;display:none}
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:9999;opacity:0;visibility:hidden;transition:0.25s}
+.modal-overlay.active{opacity:1;visibility:visible}
+.modal-box{background:#fff;border-radius:14px;padding:28px;max-width:380px;width:90%;box-shadow:0 10px 40px rgba(0,0,0,0.25);text-align:center}
+.modal-box h3{color:#991b1b;margin-bottom:12px}
+.modal-box p{color:#444;margin-bottom:20px;font-size:14px}
+.modal-actions{display:flex;gap:10px;justify-content:center}
+.modal-actions button{width:auto;padding:10px 24px;margin-top:0;font-size:14px}
+.modal-actions .btn-secondary{background:#f3f4f6;color:#374151;border:1px solid #d1d5db}
+.modal-actions .btn-secondary:hover{background:#e5e7eb}
 </style>
 </head>
 <body>
 <div class="card">
-  <img src="https://i.imgur.com/c9Upe50.png" alt="SAMS" class="logo">
-  <h1>Medical Component - Log in</h1>
+  <img src="https://i.imgur.com/Qp0gzZL.png" alt="CHL" class="logo">
+  <h1>Centre Hospitalier de Liège</h1>
+  <div class="subtitle">Espace Personnel Médical</div>
   <p>Accès réservé au personnel médical</p>
-  
   <input type="text" id="username" placeholder="Utilisateur" required>
   <input type="password" id="password" placeholder="Mot de passe" required>
-  
   <div id="error" class="error"></div>
-  
   <button id="loginBtn">Se connecter</button>
+</div>
+
+<!-- MODAL ALERTE -->
+<div id="modalOverlay" class="modal-overlay">
+  <div class="modal-box">
+    <h3 id="modalTitle">Information</h3>
+    <p id="modalMsg"></p>
+    <div class="modal-actions"><button id="modalOk">OK</button></div>
+  </div>
 </div>
 
 <script type="module">
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
-
 const SUPABASE_URL = "https://sevrfgivcpefyykuffti.supabase.co"
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNldnJmZ2l2Y3BlZnl5a3VmZnRpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI5NDI1NTMsImV4cCI6MjA3ODUxODU1M30.YZnkSHsVWKQEhfU7xYfWyTFmtkM28Zuzdu7Y1sjBXQc"
-
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY)
+
+function showModal(msg, title='Information') {
+  document.getElementById('modalTitle').textContent = title
+  document.getElementById('modalMsg').textContent = msg
+  document.getElementById('modalOverlay').classList.add('active')
+}
+document.getElementById('modalOk').onclick = () => document.getElementById('modalOverlay').classList.remove('active')
 
 document.getElementById('loginBtn').onclick = async () => {
   const user = document.getElementById('username').value.trim()
   const pass = document.getElementById('password').value
   const errorEl = document.getElementById('error')
+  errorEl.style.display = 'none'
 
   if (!user || !pass) {
     errorEl.textContent = "Veuillez remplir tous les champs"
     errorEl.style.display = 'block'
     return
   }
-
   try {
-    const { data, error } = await supabase
-      .from('login')
-      .select('*')
-      .eq('user', user)
-      .single()
-
+    const { data, error } = await supabase.from('login').select('*').eq('user', user).single()
     if (error || !data) throw new Error("Utilisateur introuvable")
     if (data.password !== pass) throw new Error("Mot de passe incorrect")
-
-    // LOG
-    await supabase.from('logs').insert({
-      user_id: data.id,
-      username: data.user,
-      action: 'login',
-      target: 'système',
-      details: `Connexion réussie`
-    })
-
-    // Session temporaire
-    localStorage.setItem('sams_user', JSON.stringify({
-      id: data.id,
-      user: data.user,
-      permission: data.permission
-    }))
-
+    await supabase.from('logs').insert({ user_id: data.id, username: data.user, action: 'login', target: 'système', details: `Connexion réussie` })
+    localStorage.setItem('sams_user', JSON.stringify({ id: data.id, user: data.user, permission: data.permission }))
     window.location.href = 'welcome.html'
-
   } catch (err) {
     errorEl.textContent = err.message
     errorEl.style.display = 'block'
@@ -88,7 +90,3 @@ document.getElementById('loginBtn').onclick = async () => {
 </script>
 </body>
 </html>
-
-
-
-
