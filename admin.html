@@ -1,145 +1,54 @@
 <!doctype html>
 <html lang="fr">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Medical Component - Admin Panel</title>
-<style>
-:root{--primary:#e11d48;--primary-dark:#991b1b;--border:#fecaca;--shadow:0 6px 18px rgba(225,29,72,0.08);--danger:#dc2626;--success:#16a34a}
-body{font-family:Inter,system-ui;margin:0;background:url('https://i.imgur.com/A6V1lhN.jpg') no-repeat center center fixed;background-size:cover;color:#1f1f1f;min-height:100vh}
-body::before{content:"";position:fixed;inset:0;background:rgba(255,255,255,0.68);backdrop-filter:blur(4px);z-index:-1}
-header{background:linear-gradient(90deg,var(--primary),var(--primary-dark));color:white;padding:16px 24px;display:flex;align-items:center;justify-content:space-between;position:relative;z-index:10}
-header img{height:58px;border-radius:14px;box-shadow:0 3px 10px rgba(0,0,0,0.2)}
-h1{margin:0;font-size:20px;font-weight:700}
-.back-btn{background:#dc2626;color:white;padding:8px 16px;border-radius:8px;font-size:14px;cursor:pointer;border:none;transition:0.2s}
-.back-btn:hover{background:#b91c1c}
-.container{max-width:1100px;margin:40px auto;padding:20px}
-.card{background:rgba(255,255,255,0.94);padding:32px;border-radius:16px;box-shadow:var(--shadow);border:1px solid var(--border);backdrop-filter:blur(12px);margin-bottom:32px}
-h2{color:var(--primary-dark);margin-top:0}
-table{width:100%;border-collapse:collapse;margin-top:16px}
-th,td{padding:12px 10px;border-bottom:1px solid #eee;text-align:left;font-size:14px}
-th{background:#fff5f5;font-weight:600;color:var(--primary-dark)}
-.btn-danger{background:var(--danger);color:white;padding:12px 28px;border:none;border-radius:10px;cursor:pointer;font-weight:600;font-size:16px;transition:0.2s}
-.btn-danger:hover{background:#b91c1c}
-.action-create{color:var(--success)}
-.action-update{color:#ea580c}
-.action-delete,.action-reset_servicetime{color:var(--danger)}
-.action-login{color:#2563eb}
-.action-invoice,.action-clock_out{color:#7c3aed}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>CHL - Bienvenue</title>
+  <style>
+    :root{--primary:#e11d48;--card:#fff;--shadow:0 8px 25px rgba(0,0,0,0.1)}
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:Inter,system-ui,sans-serif;background:linear-gradient(135deg,#e11d48,#c2185b);color:#1f1f1f;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+    .card{background:var(--card);padding:60px 40px;border-radius:18px;box-shadow:var(--shadow);width:100%;max-width:460px;text-align:center;position:relative;overflow:hidden}
+    .logo{width:100px;height:100px;margin:0 auto 24px;border-radius:16px;box-shadow:0 4px 12px rgba(0,0,0,0.15);object-fit:contain;opacity:0;transform:scale(0.7);transition:all 0.7s cubic-bezier(0.34,1.56,0.64,1)}
+    .welcome-container{opacity:0;transform:translateY(30px);transition:all 0.9s cubic-bezier(0.34,1.56,0.64,1)}
+    h1{font-size:32px;margin-bottom:12px;color:#991b1b;font-weight:700}
+    .username{font-size:28px;font-weight:600;color:var(--primary);margin-bottom:40px}
+    .loading-container{display:none;flex-direction:column;align-items:center;gap:24px;margin-top:40px}
+    .spinner{width:80px;height:80px;position:relative}
+    .spinner::before,.spinner::after{content:'';position:absolute;inset:0;border-radius:50%;background:var(--primary);opacity:0.4;animation:pulse 2s cubic-bezier(0.4,0,0.6,1) infinite}
+    .spinner::after{animation-delay:-1s;opacity:0.6;transform:scale(0.85)}
+    .spinner-inner{position:absolute;inset:8px;border-radius:50%;background:white;box-shadow:inset 0 0 12px rgba(0,0,0,0.15);z-index:1}
+    .loading-text{color:#666;font-size:15px;font-weight:500}
+    @keyframes pulse{0%,100%{transform:scale(0.5);opacity:0.3}50%{transform:scale(1.15);opacity:0.9}}
+    .card.loaded .logo{opacity:1;transform:scale(1)}
+    .card.loaded .welcome-container{opacity:1;transform:translateY(0)}
+  </style>
 </head>
 <body>
-<header>
-  <img src="https://i.imgur.com/c9Upe50.png" alt="SAMS">
-  <h1>Medical Component - Admin Panel</h1>
-  <a href="index.html" class="back-btn">Retour</a>
-</header>
-
-<div class="container">
-
-  <!-- TEMPS DE SERVICE -->
-  <div class="card">
-    <h2>Temps de service des utilisateurs</h2>
-    <button onclick="resetAllTimes()" class="btn-danger">Réinitialiser TOUS les temps de service à 0</button>
-    <table id="timeTable" style="margin-top:20px">
-      <thead><tr><th>Utilisateur</th><th>Temps total</th></tr></thead>
-      <tbody></tbody>
-    </table>
+<div class="card" id="welcomeCard">
+  <img src="https://i.imgur.com/Qp0gzZL.png" alt="CHL" class="logo">
+  <div class="welcome-container">
+    <h1>Bienvenue</h1>
+    <div class="username" id="usernameDisplay"></div>
   </div>
-
-  <!-- JOURNAL D'ACTIVITÉ -->
-  <div class="card">
-    <h2>Journal d’activité (100 dernières actions)</h2>
-    <table id="logsTable">
-      <thead>
-        <tr><th>Date</th><th>Utilisateur</th><th>Action</th><th>Cible</th><th>Détails</th></tr>
-      </thead>
-      <tbody></tbody>
-    </table>
+  <div class="loading-container" id="loading">
+    <div class="spinner"><div class="spinner-inner"></div></div>
+    <div class="loading-text">Préparation du système...</div>
   </div>
-
 </div>
-
-<script type="module">
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
-const supabase = createClient("https://sevrfgivcpefyykuffti.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNldnJmZ2l2Y3BlZnl5a3VmZnRpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI5NDI1NTMsImV4cCI6MjA3ODUxODU1M30.YZnkSHsVWKQEhfU7xYfWyTFmtkM28Zuzdu7Y1sjBXQc")
-
-// Protection admin
-const user = JSON.parse(localStorage.getItem('sams_user') || '{}')
-if (!user || user.permission !== 'admin') {
-  alert("Accès refusé - Admin uniquement")
-  window.location.href = 'login.html'
-}
-
-// CHARGEMENT DES TEMPS
-async function loadServiceTimes() {
-  const { data } = await supabase.from('login').select('user,servicetime').order('user')
-  const tbody = document.querySelector('#timeTable tbody')
-  tbody.innerHTML = data.map(u => {
-    const h = Math.floor((u.servicetime || 0)/60)
-    const m = (u.servicetime || 0)%60
-    return `<tr><td><strong>${u.user}</strong></td><td>${h}h ${m}min</td></tr>`
-  }).join('')
-}
-
-// BOUTON RÉINITIALISATION (VERSION QUI MARCHE À 100%)
-window.resetAllTimes = async () => {
-  const reason = prompt("RÉINITIALISATION COMPLÈTE DES TEMPS DE SERVICE\n\nTous les servicetime seront remis à 0.\n\nRaison obligatoire (sera logguée) :")
-  if (!reason || reason.trim() === "") return alert("Raison obligatoire !")
-
-  if (!confirm("Confirmer la réinitialisation de TOUS les temps à 0 ?")) return
-
-  try {
-    // Cette condition est toujours vraie → met à jour toute la table
-    const { error } = await supabase
-      .from('login')
-      .update({ servicetime: 0 })
-      .gte('id', 0)
-
-    if (error) throw error
-
-    // Log de l'action
-    await supabase.from('logs').insert({
-      user_id: user.id,
-      username: user.user,
-      action: 'reset_servicetime',
-      target: 'tous_les_utilisateurs',
-      details: `Raison : ${reason.trim()}`
-    })
-
-    alert("TOUS les temps de service ont été remis à 0 avec succès !")
-    loadServiceTimes()
-  } catch (e) {
-    alert("Erreur : " + e.message)
-  }
-}
-
-// JOURNAL D'ACTIVITÉ
-async function loadLogs() {
-  const { data } = await supabase.from('logs').select('*').order('created_at', { ascending: false }).limit(100)
-  const tbody = document.querySelector('#logsTable tbody')
-  tbody.innerHTML = data.map(log => {
-    const date = new Date(log.created_at).toLocaleString('fr-FR')
-    const actionLabel = {
-      login: 'Connexion', create: 'Création', update: 'Modification',
-      delete: 'Suppression', invoice: 'Facture', clock_out: 'Fin de service',
-      reset_servicetime: 'Réinit. temps service'
-    }[log.action] || log.action
-    return `<tr>
-      <td>${date}</td>
-      <td><strong>${log.username}</strong></td>
-      <td><span class="action-${log.action}">${actionLabel}</span></td>
-      <td>${log.target || '—'}</td>
-      <td>${log.details || '—'}</td>
-    </tr>`
-  }).join('')
-}
-
-// Lancement
-loadServiceTimes()
-loadLogs()
+<script>
+  const samsUser = JSON.parse(localStorage.getItem('sams_user') || '{}')
+  document.getElementById('usernameDisplay').textContent = samsUser.user || "Médecin"
+  setTimeout(() => document.getElementById('welcomeCard').classList.add('loaded'), 300)
+  setTimeout(() => {
+    document.querySelector('.welcome-container').style.opacity = '0'
+    document.querySelector('.welcome-container').style.transform = 'translateY(-20px)'
+    setTimeout(() => {
+      document.querySelector('.welcome-container').style.display = 'none'
+      document.getElementById('loading').style.display = 'flex'
+    }, 600)
+  }, 4200)
+  setTimeout(() => window.location.href = 'index.html', 4200 + 3000)
 </script>
 </body>
 </html>
-
-
