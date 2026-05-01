@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Medical Component - Prise de service</title>
+<title>Centre Hospitalier de Liège - Prise de service</title>
 <style>
 :root{--primary:#e11d48;--primary-dark:#991b1b;--border:#fecaca;--shadow:0 6px 18px rgba(225,29,72,0.08);--danger:#dc2626;--success:#16a34a}
 body{font-family:Inter,system-ui;margin:0;background:url('https://i.imgur.com/A6V1lhN.jpg') no-repeat center center fixed;background-size:cover;color:#1f1f1f;min-height:100vh}
@@ -22,14 +22,41 @@ button.primary:hover{background:var(--primary-dark)}
 .item{display:flex;justify-content:space-between;align-items:center;background:white;padding:12px;border-radius:8px;margin:8px 0;box-shadow:0 2px 6px rgba(0,0,0,0.05)}
 .item button{color:var(--danger);background:none;border:none;cursor:pointer;font-size:20px}
 .muted{color:#6b7280;font-style:italic}
+
+/* MODAL */
+#modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center}
+#modal-box{background:white;border-radius:16px;padding:32px;max-width:480px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.3);border-top:4px solid var(--primary);animation:modalIn .2s ease}
+@keyframes modalIn{from{transform:scale(0.9);opacity:0}to{transform:scale(1);opacity:1}}
+#modal-title{margin:0 0 12px;font-size:17px;font-weight:700;color:var(--primary-dark)}
+#modal-msg{margin:0 0 20px;font-size:14px;line-height:1.6;color:#374151;white-space:pre-line}
+#modal-input{width:100%;padding:12px;border-radius:10px;border:1px solid var(--border);box-sizing:border-box;font-size:14px;margin-bottom:16px}
+#modal-input:focus{border-color:var(--primary);outline:none;box-shadow:0 0 0 3px rgba(225,29,72,.15)}
+#modal-actions{display:flex;gap:12px;justify-content:flex-end}
+#modal-cancel{background:transparent;border:1.5px solid #e5e7eb;padding:10px 20px;border-radius:10px;cursor:pointer;font-size:14px;transition:.2s;font-weight:500}
+#modal-cancel:hover{border-color:var(--primary);background:#fff5f5}
+#modal-ok{background:var(--primary);color:white;padding:10px 24px;border:none;border-radius:10px;cursor:pointer;font-size:14px;font-weight:600;transition:.2s}
+#modal-ok:hover{background:var(--primary-dark)}
 </style>
 </head>
 <body>
 <header>
-  <img src="https://i.imgur.com/c9Upe50.png" alt="SAMS">
+  <img src="https://i.imgur.com/Qp0gzZL.png" alt="CHL">
   <h1>Prise de service</h1>
   <a href="index.html" class="back-btn">Retour</a>
 </header>
+
+<!-- MODAL -->
+<div id="modal-overlay">
+  <div id="modal-box">
+    <p id="modal-title"></p>
+    <p id="modal-msg"></p>
+    <input id="modal-input" type="text" style="display:none">
+    <div id="modal-actions">
+      <button id="modal-cancel" style="display:none">Annuler</button>
+      <button id="modal-ok">OK</button>
+    </div>
+  </div>
+</div>
 
 <div class="container">
   <div class="card">
@@ -71,6 +98,38 @@ const supabase = createClient("https://sevrfgivcpefyykuffti.supabase.co", "eyJhb
 if (!localStorage.getItem('sams_user')) window.location.href = 'login.html'
 const user = JSON.parse(localStorage.getItem('sams_user'))
 
+// --- MODAL SYSTEM ---
+const overlay = document.getElementById('modal-overlay')
+const modalTitle = document.getElementById('modal-title')
+const modalMsg = document.getElementById('modal-msg')
+const modalInput = document.getElementById('modal-input')
+const modalOk = document.getElementById('modal-ok')
+const modalCancel = document.getElementById('modal-cancel')
+
+function openModal(type, title, msg) {
+  return new Promise(resolve => {
+    modalTitle.textContent = title
+    modalMsg.textContent = msg
+    overlay.style.display = 'flex'
+    modalInput.style.display = type === 'prompt' ? 'block' : 'none'
+    modalCancel.style.display = type !== 'alert' ? 'inline-block' : 'none'
+    if (type === 'prompt') { modalInput.value = ''; setTimeout(() => modalInput.focus(), 50) }
+
+    function clean() {
+      overlay.style.display = 'none'
+      modalOk.onclick = null
+      modalCancel.onclick = null
+    }
+    modalOk.onclick = () => { clean(); resolve(type === 'prompt' ? modalInput.value : true) }
+    modalCancel.onclick = () => { clean(); resolve(type === 'prompt' ? null : false) }
+    if (type === 'prompt') {
+      modalInput.onkeydown = e => { if (e.key === 'Enter') { clean(); resolve(modalInput.value) } }
+    }
+  })
+}
+const showAlert   = (msg, title='Information') => openModal('alert', title, msg)
+const showConfirm = (msg, title='Confirmation') => openModal('confirm', title, msg)
+
 // Variables persistantes
 let items = JSON.parse(localStorage.getItem('current_shift_items') || '[]')
 let startTime = localStorage.getItem('shift_start_time')
@@ -90,7 +149,6 @@ function startTimer() {
   updateTimer()
 }
 
-// Si déjà en service → on reprend là où on s’était arrêté
 if (startTime) {
   document.getElementById('statusText').innerHTML = `Service en cours depuis <strong>${new Date(startTime).toLocaleTimeString('fr-FR')}</strong>`
   document.getElementById('startBtn').style.display = 'none'
@@ -99,7 +157,6 @@ if (startTime) {
   startTimer()
 }
 
-// Démarrer le service
 document.getElementById('startBtn').onclick = () => {
   startTime = new Date().toISOString()
   localStorage.setItem('shift_start_time', startTime)
@@ -108,7 +165,6 @@ document.getElementById('startBtn').onclick = () => {
   location.reload()
 }
 
-// AJOUT D'INTERVENTION (corrigé : itemQty au lieu de itemQyt)
 window.addItem = () => {
   const type = document.getElementById('itemType').value
   const qty = parseInt(document.getElementById('itemQty').value) || 1
@@ -127,12 +183,17 @@ function renderItems() {
   list.innerHTML = items.map((it, i) => `
     <div class="item">
       <span>${it.qty}× ${it.type}</span>
-      <button onclick="items.splice(${i},1); localStorage.setItem('current_shift_items', JSON.stringify(items)); renderItems()">Supprimer</button>
+      <button onclick="removeItem(${i})">✕</button>
     </div>
   `).join('')
 }
 
-// Fin de service
+window.removeItem = i => {
+  items.splice(i, 1)
+  localStorage.setItem('current_shift_items', JSON.stringify(items))
+  renderItems()
+}
+
 window.endShift = async () => {
   if (!startTime) return
   const endTime = new Date()
@@ -141,7 +202,15 @@ window.endShift = async () => {
   const recap = {}
   items.forEach(i => recap[i.type] = (recap[i.type] || 0) + i.qty)
 
-  if (!confirm(`Terminer le service ?\n\nDurée : ${duration} minutes\nInterventions : ${items.length > 0 ? items.map(i => `${i.qty}×${i.type}`).join(', ') : 'Aucune'}`)) return
+  const interventionsSummary = items.length > 0
+    ? items.map(i => `${i.qty}× ${i.type}`).join(', ')
+    : 'Aucune'
+
+  const ok = await showConfirm(
+    `Durée : ${duration} minutes\nInterventions : ${interventionsSummary}`,
+    "Terminer le service ?"
+  )
+  if (!ok) return
 
   try {
     await supabase.from('shifts').insert({
@@ -165,18 +234,16 @@ window.endShift = async () => {
     localStorage.removeItem('shift_start_time')
     localStorage.removeItem('current_shift_items')
     clearInterval(timerInterval)
-    alert(`Service terminé ! ${duration} minutes ajoutées à ton temps total`)
+
+    await showAlert(`${duration} minutes ont été ajoutées à ton temps total.`, "Service terminé !")
     location.reload()
   } catch (e) {
-    alert("Erreur : " + e.message)
+    await showAlert("Erreur : " + e.message, "Erreur")
   }
 }
 
-// Démarrage auto
 renderItems()
 if (startTime) startTimer()
 </script>
 </body>
 </html>
-
-
