@@ -3,194 +3,89 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Centre Hospitalier de Liège - Admin Panel</title>
+<title>CHL - Connexion</title>
 <style>
-:root{--primary:#e11d48;--primary-dark:#991b1b;--border:#fecaca;--shadow:0 6px 18px rgba(225,29,72,0.08);--danger:#dc2626;--success:#16a34a}
-body{font-family:Inter,system-ui;margin:0;background:url('https://i.imgur.com/A6V1lhN.jpg') no-repeat center center fixed;background-size:cover;color:#1f1f1f;min-height:100vh}
-body::before{content:"";position:fixed;inset:0;background:rgba(255,255,255,0.68);backdrop-filter:blur(4px);z-index:-1}
-header{background:linear-gradient(90deg,var(--primary),var(--primary-dark));color:white;padding:16px 24px;display:flex;align-items:center;justify-content:space-between;position:relative;z-index:10}
-header img{height:58px;border-radius:14px;box-shadow:0 3px 10px rgba(0,0,0,0.2)}
-h1{margin:0;font-size:20px;font-weight:700}
-.back-btn{background:#dc2626;color:white;padding:8px 16px;border-radius:8px;font-size:14px;cursor:pointer;border:none;transition:0.2s}
-.back-btn:hover{background:#b91c1c}
-.container{max-width:1100px;margin:40px auto;padding:20px}
-.card{background:rgba(255,255,255,0.94);padding:32px;border-radius:16px;box-shadow:var(--shadow);border:1px solid var(--border);backdrop-filter:blur(12px);margin-bottom:32px}
-h2{color:var(--primary-dark);margin-top:0}
-table{width:100%;border-collapse:collapse;margin-top:16px}
-th,td{padding:12px 10px;border-bottom:1px solid #eee;text-align:left;font-size:14px}
-th{background:#fff5f5;font-weight:600;color:var(--primary-dark)}
-.btn-danger{background:var(--danger);color:white;padding:12px 28px;border:none;border-radius:10px;cursor:pointer;font-weight:600;font-size:16px;transition:0.2s}
-.btn-danger:hover{background:#b91c1c}
-.action-create{color:var(--success)}
-.action-update{color:#ea580c}
-.action-delete,.action-reset_servicetime{color:var(--danger)}
-.action-login{color:#2563eb}
-.action-invoice,.action-clock_out{color:#7c3aed}
-
+:root{--primary:#e11d48;--bg:#f8f9fa;--card:#fff;--shadow:0 8px 25px rgba(0,0,0,0.1)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:Inter,system-ui;background:linear-gradient(135deg,#e11d48,#c2185b);color:#1f1f1f;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.card{background:var(--card);padding:40px 32px;border-radius:18px;box-shadow:var(--shadow);width:100%;max-width:400px;text-align:center}
+.logo{width:120px;height:120px;margin:0 auto 20px;border-radius:16px;box-shadow:0 4px 12px rgba(0,0,0,0.15);object-fit:contain}
+h1{font-size:22px;margin-bottom:4px;color:#991b1b}
+.subtitle{color:#444;font-size:13px;font-weight:600;margin-bottom:4px}
+p{color:#666;margin-bottom:24px;font-size:14px}
+input{width:100%;padding:14px;margin:10px 0;border:1.5px solid #ddd;border-radius:10px;font-size:15px;transition:0.2s}
+input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(225,29,72,0.15)}
+button{width:100%;padding:14px;background:var(--primary);color:white;border:none;border-radius:10px;font-weight:600;font-size:15px;cursor:pointer;transition:0.2s;margin-top:10px}
+button:hover{background:#991b1b}
+.error{color:#dc2626;background:#fee;border:1px solid #fecaca;padding:12px;border-radius:8px;margin:12px 0;font-size:14px;display:none}
 /* MODAL */
-#modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center}
-#modal-box{background:white;border-radius:16px;padding:32px;max-width:480px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.3);border-top:4px solid var(--primary);animation:modalIn .2s ease}
-@keyframes modalIn{from{transform:scale(0.9);opacity:0}to{transform:scale(1);opacity:1}}
-#modal-title{margin:0 0 12px;font-size:17px;font-weight:700;color:var(--primary-dark)}
-#modal-msg{margin:0 0 20px;font-size:14px;line-height:1.6;color:#374151;white-space:pre-line}
-#modal-input{width:100%;padding:12px;border-radius:10px;border:1px solid var(--border);box-sizing:border-box;font-size:14px;margin-bottom:16px}
-#modal-input:focus{border-color:var(--primary);outline:none;box-shadow:0 0 0 3px rgba(225,29,72,.15)}
-#modal-actions{display:flex;gap:12px;justify-content:flex-end}
-#modal-cancel{background:transparent;border:1.5px solid #e5e7eb;padding:10px 20px;border-radius:10px;cursor:pointer;font-size:14px;transition:.2s;font-weight:500}
-#modal-cancel:hover{border-color:var(--primary);background:#fff5f5}
-#modal-ok{background:var(--primary);color:white;padding:10px 24px;border:none;border-radius:10px;cursor:pointer;font-size:14px;font-weight:600;transition:.2s}
-#modal-ok:hover{background:var(--primary-dark)}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:9999;opacity:0;visibility:hidden;transition:0.25s}
+.modal-overlay.active{opacity:1;visibility:visible}
+.modal-box{background:#fff;border-radius:14px;padding:28px;max-width:380px;width:90%;box-shadow:0 10px 40px rgba(0,0,0,0.25);text-align:center}
+.modal-box h3{color:#991b1b;margin-bottom:12px}
+.modal-box p{color:#444;margin-bottom:20px;font-size:14px}
+.modal-actions{display:flex;gap:10px;justify-content:center}
+.modal-actions button{width:auto;padding:10px 24px;margin-top:0;font-size:14px}
+.modal-actions .btn-secondary{background:#f3f4f6;color:#374151;border:1px solid #d1d5db}
+.modal-actions .btn-secondary:hover{background:#e5e7eb}
 </style>
 </head>
 <body>
-<header>
-  <img src="https://i.imgur.com/Qp0gzZL.png" alt="CHL">
-  <h1>Centre Hospitalier de Liège - Admin Panel</h1>
-  <a href="index.html" class="back-btn">Retour</a>
-</header>
-
-<!-- MODAL -->
-<div id="modal-overlay">
-  <div id="modal-box">
-    <p id="modal-title"></p>
-    <p id="modal-msg"></p>
-    <input id="modal-input" type="text" style="display:none">
-    <div id="modal-actions">
-      <button id="modal-cancel" style="display:none">Annuler</button>
-      <button id="modal-ok">OK</button>
-    </div>
-  </div>
+<div class="card">
+  <img src="https://i.imgur.com/Qp0gzZL.png" alt="CHL" class="logo">
+  <h1>Centre Hospitalier de Liège</h1>
+  <div class="subtitle">Espace Personnel Médical</div>
+  <p>Accès réservé au personnel médical</p>
+  <input type="text" id="username" placeholder="Utilisateur" required>
+  <input type="password" id="password" placeholder="Mot de passe" required>
+  <div id="error" class="error"></div>
+  <button id="loginBtn">Se connecter</button>
 </div>
 
-<div class="container">
-
-  <!-- TEMPS DE SERVICE -->
-  <div class="card">
-    <h2>Temps de service des utilisateurs</h2>
-    <button onclick="resetAllTimes()" class="btn-danger">Réinitialiser TOUS les temps de service à 0</button>
-    <table id="timeTable" style="margin-top:20px">
-      <thead><tr><th>Utilisateur</th><th>Temps total</th></tr></thead>
-      <tbody></tbody>
-    </table>
+<!-- MODAL ALERTE -->
+<div id="modalOverlay" class="modal-overlay">
+  <div class="modal-box">
+    <h3 id="modalTitle">Information</h3>
+    <p id="modalMsg"></p>
+    <div class="modal-actions"><button id="modalOk">OK</button></div>
   </div>
-
-  <!-- JOURNAL D'ACTIVITÉ -->
-  <div class="card">
-    <h2>Journal d'activité (100 dernières actions)</h2>
-    <table id="logsTable">
-      <thead>
-        <tr><th>Date</th><th>Utilisateur</th><th>Action</th><th>Cible</th><th>Détails</th></tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
-
 </div>
 
 <script type="module">
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
-const supabase = createClient("https://sevrfgivcpefyykuffti.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNldnJmZ2l2Y3BlZnl5a3VmZnRpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI5NDI1NTMsImV4cCI6MjA3ODUxODU1M30.YZnkSHsVWKQEhfU7xYfWyTFmtkM28Zuzdu7Y1sjBXQc")
+const SUPABASE_URL = "https://sevrfgivcpefyykuffti.supabase.co"
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNldnJmZ2l2Y3BlZnl5a3VmZnRpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI5NDI1NTMsImV4cCI6MjA3ODUxODU1M30.YZnkSHsVWKQEhfU7xYfWyTFmtkM28Zuzdu7Y1sjBXQc"
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY)
 
-// --- MODAL SYSTEM ---
-const overlay = document.getElementById('modal-overlay')
-const modalTitle = document.getElementById('modal-title')
-const modalMsg = document.getElementById('modal-msg')
-const modalInput = document.getElementById('modal-input')
-const modalOk = document.getElementById('modal-ok')
-const modalCancel = document.getElementById('modal-cancel')
-
-function openModal(type, title, msg) {
-  return new Promise(resolve => {
-    modalTitle.textContent = title
-    modalMsg.textContent = msg
-    overlay.style.display = 'flex'
-    modalInput.style.display = type === 'prompt' ? 'block' : 'none'
-    modalCancel.style.display = type !== 'alert' ? 'inline-block' : 'none'
-    if (type === 'prompt') { modalInput.value = ''; setTimeout(() => modalInput.focus(), 50) }
-
-    function clean() {
-      overlay.style.display = 'none'
-      modalOk.onclick = null
-      modalCancel.onclick = null
-    }
-    modalOk.onclick = () => { clean(); resolve(type === 'prompt' ? modalInput.value : true) }
-    modalCancel.onclick = () => { clean(); resolve(type === 'prompt' ? null : false) }
-    if (type === 'prompt') {
-      modalInput.onkeydown = e => { if (e.key === 'Enter') { clean(); resolve(modalInput.value) } }
-    }
-  })
+function showModal(msg, title='Information') {
+  document.getElementById('modalTitle').textContent = title
+  document.getElementById('modalMsg').textContent = msg
+  document.getElementById('modalOverlay').classList.add('active')
 }
-const showAlert   = (msg, title='Information') => openModal('alert', title, msg)
-const showConfirm = (msg, title='Confirmation') => openModal('confirm', title, msg)
-const showPrompt  = (msg, title='Saisie requise') => openModal('prompt', title, msg)
+document.getElementById('modalOk').onclick = () => document.getElementById('modalOverlay').classList.remove('active')
 
-// Protection admin
-const user = JSON.parse(localStorage.getItem('sams_user') || '{}')
-if (!user || user.permission !== 'admin') {
-  await showAlert("Accès refusé. Réservé aux administrateurs.", "Accès refusé")
-  window.location.href = 'login.html'
-} else {
-  // CHARGEMENT DES TEMPS
-  async function loadServiceTimes() {
-    const { data } = await supabase.from('login').select('user,servicetime').order('user')
-    const tbody = document.querySelector('#timeTable tbody')
-    tbody.innerHTML = data.map(u => {
-      const h = Math.floor((u.servicetime || 0)/60)
-      const m = (u.servicetime || 0)%60
-      return `<tr><td><strong>${u.user}</strong></td><td>${h}h ${m}min</td></tr>`
-    }).join('')
+document.getElementById('loginBtn').onclick = async () => {
+  const user = document.getElementById('username').value.trim()
+  const pass = document.getElementById('password').value
+  const errorEl = document.getElementById('error')
+  errorEl.style.display = 'none'
+
+  if (!user || !pass) {
+    errorEl.textContent = "Veuillez remplir tous les champs"
+    errorEl.style.display = 'block'
+    return
   }
-
-  // BOUTON RÉINITIALISATION
-  window.resetAllTimes = async () => {
-    const reason = await showPrompt("Tous les servicetime seront remis à 0.\n\nRaison obligatoire (sera enregistrée) :", "Réinitialisation des temps de service")
-    if (!reason || reason.trim() === '') { await showAlert("Une raison est obligatoire.", "Champ requis"); return }
-
-    const ok = await showConfirm("Confirmer la réinitialisation de TOUS les temps à 0 ?", "Confirmer l'action")
-    if (!ok) return
-
-    try {
-      const { error } = await supabase.from('login').update({ servicetime: 0 }).gte('id', 0)
-      if (error) throw error
-
-      await supabase.from('logs').insert({
-        user_id: user.id,
-        username: user.user,
-        action: 'reset_servicetime',
-        target: 'tous_les_utilisateurs',
-        details: `Raison : ${reason.trim()}`
-      })
-
-      await showAlert("Tous les temps de service ont été remis à 0 avec succès.", "Réinitialisation réussie")
-      loadServiceTimes()
-    } catch (e) {
-      await showAlert("Erreur : " + e.message, "Erreur")
-    }
+  try {
+    const { data, error } = await supabase.from('login').select('*').eq('user', user).single()
+    if (error || !data) throw new Error("Utilisateur introuvable")
+    if (data.password !== pass) throw new Error("Mot de passe incorrect")
+    await supabase.from('logs').insert({ user_id: data.id, username: data.user, action: 'login', target: 'système', details: `Connexion réussie` })
+    localStorage.setItem('sams_user', JSON.stringify({ id: data.id, user: data.user, permission: data.permission }))
+    window.location.href = 'welcome.html'
+  } catch (err) {
+    errorEl.textContent = err.message
+    errorEl.style.display = 'block'
   }
-
-  // JOURNAL D'ACTIVITÉ
-  async function loadLogs() {
-    const { data } = await supabase.from('logs').select('*').order('created_at', { ascending: false }).limit(100)
-    const tbody = document.querySelector('#logsTable tbody')
-    tbody.innerHTML = data.map(log => {
-      const date = new Date(log.created_at).toLocaleString('fr-FR')
-      const actionLabel = {
-        login: 'Connexion', create: 'Création', update: 'Modification',
-        delete: 'Suppression', invoice: 'Facture', clock_out: 'Fin de service',
-        reset_servicetime: 'Réinit. temps service'
-      }[log.action] || log.action
-      return `<tr>
-        <td>${date}</td>
-        <td><strong>${log.username}</strong></td>
-        <td><span class="action-${log.action}">${actionLabel}</span></td>
-        <td>${log.target || '—'}</td>
-        <td>${log.details || '—'}</td>
-      </tr>`
-    }).join('')
-  }
-
-  loadServiceTimes()
-  loadLogs()
 }
 </script>
 </body>
