@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Medical Component - Impayés</title>
+<title>Centre Hospitalier de Liège - Impayés</title>
 <style>
 :root{--p:#e11d48;--d:#dc2626;--s:#16a34a;--w:#ea580c;--b:#fecaca;--l:#fee2e2}
 body{font-family:system-ui,Arial;margin:0;background:url('https://i.imgur.com/A6V1lhN.jpg') center/cover fixed;color:#111;min-height:100vh}
@@ -41,14 +41,42 @@ input:focus,textarea:focus{border-color:var(--p);outline:none;box-shadow:0 0 0 3
 .row{display:flex;gap:16px;flex-wrap:wrap}
 .col{flex:1;min-width:240px}
 .search{margin:16px 0;padding:12px;border-radius:10px;border:1px solid var(--b);width:100%;font-size:14px}
+
+/* MODAL */
+#modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center}
+#modal-box{background:white;border-radius:16px;padding:32px;max-width:480px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.3);border-top:4px solid var(--p);animation:modalIn .2s ease}
+@keyframes modalIn{from{transform:scale(0.9);opacity:0}to{transform:scale(1);opacity:1}}
+#modal-title{margin:0 0 12px;font-size:17px;font-weight:700;color:#991b1b}
+#modal-msg{margin:0 0 20px;font-size:14px;line-height:1.6;color:#374151;white-space:pre-line}
+#modal-input-text{width:100%;padding:12px;border-radius:10px;border:1px solid var(--b);box-sizing:border-box;font-size:14px;margin-bottom:16px}
+#modal-input-text:focus{border-color:var(--p);outline:none;box-shadow:0 0 0 3px rgba(225,29,72,.15)}
+#modal-actions{display:flex;gap:12px;justify-content:flex-end}
+#modal-cancel{background:transparent;border:1.5px solid #e5e7eb;padding:10px 20px;border-radius:10px;cursor:pointer;font-size:14px;transition:.2s;font-weight:500}
+#modal-cancel:hover{border-color:var(--p);background:var(--l)}
+#modal-ok{background:var(--p);color:white;padding:10px 24px;border:none;border-radius:10px;cursor:pointer;font-size:14px;font-weight:600;transition:.2s}
+#modal-ok:hover{background:#991b1b}
 </style>
 </head>
 <body>
 <header>
-  <img src="https://i.imgur.com/c9Upe50.png" alt="SAMS">
+  <img src="https://i.imgur.com/Qp0gzZL.png" alt="CHL">
   <h1>Impayés</h1>
   <a href="index.html" class="back-btn">Retour</a>
 </header>
+
+<!-- MODAL -->
+<div id="modal-overlay">
+  <div id="modal-box">
+    <p id="modal-title"></p>
+    <p id="modal-msg"></p>
+    <input id="modal-input-text" type="text" style="display:none">
+    <div id="modal-actions">
+      <button id="modal-cancel" style="display:none">Annuler</button>
+      <button id="modal-ok">OK</button>
+    </div>
+  </div>
+</div>
+
 <div class="container">
   <div class="grid">
     <aside class="card">
@@ -98,6 +126,38 @@ if (!localStorage.getItem('sams_user')) location.href = 'login.html'
 const user = JSON.parse(localStorage.getItem('sams_user'))
 const isAdmin = user.permission === 'admin'
 
+// --- MODAL SYSTEM ---
+const overlay = document.getElementById('modal-overlay')
+const modalTitle = document.getElementById('modal-title')
+const modalMsg = document.getElementById('modal-msg')
+const modalInput = document.getElementById('modal-input-text')
+const modalOk = document.getElementById('modal-ok')
+const modalCancel = document.getElementById('modal-cancel')
+
+function openModal(type, title, msg) {
+  return new Promise(resolve => {
+    modalTitle.textContent = title
+    modalMsg.textContent = msg
+    overlay.style.display = 'flex'
+    modalInput.style.display = type === 'prompt' ? 'block' : 'none'
+    modalCancel.style.display = type !== 'alert' ? 'inline-block' : 'none'
+    if (type === 'prompt') { modalInput.value = ''; setTimeout(() => modalInput.focus(), 50) }
+
+    function clean() {
+      overlay.style.display = 'none'
+      modalOk.onclick = null
+      modalCancel.onclick = null
+    }
+    modalOk.onclick = () => { clean(); resolve(type === 'prompt' ? modalInput.value : true) }
+    modalCancel.onclick = () => { clean(); resolve(type === 'prompt' ? null : false) }
+    if (type === 'prompt') {
+      modalInput.onkeydown = e => { if (e.key === 'Enter') { clean(); resolve(modalInput.value) } }
+    }
+  })
+}
+const showAlert  = (msg, title='Information') => openModal('alert', title, msg)
+const showPrompt = (msg, title='Saisie requise') => openModal('prompt', title, msg)
+
 let data = [], currentId = null
 
 function show(s) {
@@ -108,7 +168,7 @@ function show(s) {
 
 async function load() {
   const { data: rows, error } = await supabase.from('unpaid').select('*').order('id', {ascending:false})
-  if (error) { alert('Erreur Supabase : ' + error.message); return }
+  if (error) { await showAlert('Erreur Supabase : ' + error.message, 'Erreur'); return }
   data = rows || []
   render()
 }
@@ -152,8 +212,8 @@ Montant : ${item.cost}$`
 
 async function validate(ok) {
   if (!ok) {
-    const r = prompt('Raison du refus (min 10 caractères) :')
-    if (!r || r.trim().length < 10) return alert('Raison trop courte')
+    const r = await showPrompt('Veuillez saisir la raison du refus (minimum 10 caractères) :', 'Raison du refus')
+    if (!r || r.trim().length < 10) { await showAlert('La raison saisie est trop courte (minimum 10 caractères).', 'Champ invalide'); return }
     await supabase.from('unpaid').update({validation_status:'refused', validation_comment:r.trim()}).eq('id', currentId)
   } else {
     await supabase.from('unpaid').update({validation_status:'validated', validation_comment:null}).eq('id', currentId)
@@ -184,7 +244,7 @@ document.getElementById('f').onsubmit = async e => {
   let error
   if (currentId) ({ error } = await supabase.from('unpaid').update(payload).eq('id', currentId))
   else ({ error } = await supabase.from('unpaid').insert([payload]))
-  if (error) alert('Erreur : ' + error.message)
+  if (error) { await showAlert('Erreur : ' + error.message, 'Erreur') }
   else {
     document.getElementById('f').reset()
     document.getElementById('formTitle').textContent = 'Nouvel impayé'
@@ -203,7 +263,3 @@ load()
 </script>
 </body>
 </html>
-
-
-
-
